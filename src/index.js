@@ -29,6 +29,8 @@ let renderer = {
       let html = renderer.renderDirectory({ fileMapList, pathList })
 
       return html
+    } else if (type === FileType.NOT_FOUND) {
+      return 'Page 404'
     }
 
     return data.content
@@ -169,7 +171,7 @@ let resolver = {
 let reader = {
   /**
    * @return {object}
-   * { type: '404|file|directory', data: { mime, content, files } }
+   * { type: '404|file|directory', data: { filename, content?, files? } }
    */
   read: async pathname => {
     let filename = path.join(cwd, pathname)
@@ -182,15 +184,11 @@ let reader = {
       ? FileType.DIRECTORY
       : FileType.NOT_FOUND
 
-    let data = {}
+    let data = { filename }
 
     if (isFile) {
-      data.mime = mime.contentType(path.extname(filename))
-
       data.content = await readFile(filename)
     } else if (isDirectory) {
-      data.mime = mime.contentType('.html')
-
       data.files = await readdir(filename)
 
       data.files = await Promise.all(data.files.map(async file => {
@@ -246,9 +244,9 @@ let transformer = {
 
     if (type === FileType.NOT_FOUND) {
       data.mime = mime.contentType('.html')
-
-      data.content = 'Page 404'
     } else if (type === FileType.DIRECTORY) {
+      data.mime = mime.contentType('.html')
+
       let { fileMapList, pathList } = prepareDirectoryData(data.files, {
         pathname,
         isVdActived,
@@ -257,6 +255,8 @@ let transformer = {
 
       data.fileMapList = fileMapList
       data.pathList = pathList
+    } else if (type === FileType.FILE) {
+      data.mime = mime.contentType(path.extname(data.filename))
     }
 
     return result
@@ -304,7 +304,7 @@ function addClzNameProp(obj) {
     clzName += ' icon-directory'
   } else if (isFile) {
     let contentType = mime.lookup(filename)
-    
+
     if (contentType) {
       clzName += ' icon-' + contentType.replace(/[/|.]/g, '-')
     } else {
