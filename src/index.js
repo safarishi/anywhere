@@ -140,7 +140,6 @@ function static(options) {
     // 4.1 send static file
     if (data.type === FileType.FILE) {
       res.setHeader('Content-Type', mime.contentType(path.extname(data.filename)))
-
       res.end(data.content)
     }
 
@@ -149,7 +148,6 @@ function static(options) {
       let html = finalRenderer.render(data)
       
       res.setHeader('Content-Type', mime.contentType('.html'))
-
       res.end(html)
     }
   }
