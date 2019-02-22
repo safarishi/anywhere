@@ -243,10 +243,14 @@ let transformer = {
     let { type, data = {} } = result
 
     if (type === FileType.NOT_FOUND) {
-      data.mime = mime.contentType('.html')
-    } else if (type === FileType.DIRECTORY) {
-      data.mime = mime.contentType('.html')
-
+      return {
+        type,
+        data: {
+          ...data, mime: mime.contentType('.html'),
+        }
+      }
+    }
+    if (type === FileType.DIRECTORY) {
       let { fileMapList, pathList } = prepareDirectoryData(data.files, {
         pathname,
         isVdActived,
@@ -255,11 +259,27 @@ let transformer = {
 
       data.fileMapList = fileMapList
       data.pathList = pathList
-    } else if (type === FileType.FILE) {
-      data.mime = mime.contentType(path.extname(data.filename))
-    }
 
-    return result
+      return {
+        type,
+        data: {
+          ...data,
+          mime: mime.contentType('.html'),
+          pathList,
+          fileMapList
+        }
+      }
+    }
+    
+    if (type === FileType.FILE) {
+      return {
+        type,
+        data: {
+          ...data,
+          mime: mime.contentType(path.extname(data.filename))
+        }
+      }
+    }
   }
 }
 
