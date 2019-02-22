@@ -6,19 +6,12 @@ let path = require('path')
 let promisify = require('util').promisify
 let mime = require('mime-types')
 
-let defaults = {
-  mime: {
-    html: 'text/html; charset=utf-8'
-  },
-  // 读取 pathname 对应的文件类型
-  type: {
-    FILE: 'file',
-    NOT_FOUND: '404',
-    DIRECTORY: 'directory'
-  }
+// 读取 pathname 对应的文件类型
+let FileType = {
+  FILE: 'file',
+  NOT_FOUND: '404',
+  DIRECTORY: 'directory'
 }
-
-let { mime: defaultMimeMap, type: defaultTypeMap } = defaults
 
 let cwd = process.cwd()
 
@@ -99,10 +92,10 @@ let reader = {
     let { isFile, isDirectory } = await readFileInfo(filename)
 
     let type = isFile
-      ? defaultTypeMap.FILE
+      ? FileType.FILE
       : isDirectory
-      ? defaultTypeMap.DIRECTORY
-      : defaultTypeMap.NOT_FOUND
+      ? FileType.DIRECTORY
+      : FileType.NOT_FOUND
 
     let data = {}
 
@@ -111,7 +104,7 @@ let reader = {
 
       data.content = await readFile(filename)
     } else if (isDirectory) {
-      data.mime = defaultMimeMap.html
+      data.mime = mime.contentType('.html')
 
       data.files = await readdir(filename)
     }
@@ -156,11 +149,11 @@ let transformer = {
   transform: async (result, { pathname, isVdActived, vd }) => {
     let { type, data = {} } = result
 
-    if (type === defaultTypeMap.NOT_FOUND) {
-      data.mime = defaultMimeMap.html
+    if (type === FileType.NOT_FOUND) {
+      data.mime = mime.contentType('.html')
 
       data.content = 'Page 404'
-    } else if (type === defaultTypeMap.DIRECTORY) {
+    } else if (type === FileType.DIRECTORY) {
       let { fileMapList, pathList } = await prepareDirectoryData(data.files, {
         pathname,
         isVdActived,
@@ -238,7 +231,7 @@ let renderer = {
   render: ({ type, data = {} }) => {
     let { fileMapList, pathList } = data
 
-    if (type === defaultTypeMap.DIRECTORY) {
+    if (type === FileType.DIRECTORY) {
       let html = renderer.renderDirectory({ fileMapList, pathList })
 
       return html
