@@ -22,9 +22,7 @@ let readdir = promisify(fs.readdir)
 let realpath = promisify(fs.realpath)
 
 let renderer = {
-  render: ({ type, data = {} }) => {
-    let { fileMapList, pathList } = data
-
+  render: ({ type, fileMapList, pathList }) => {
     if (type === FileType.DIRECTORY) {
       let html = renderer.renderDirectory({ fileMapList, pathList })
 
@@ -141,9 +139,9 @@ function static(options) {
 
     // 4.1 send static file
     if (data.type === FileType.FILE) {
-      res.setHeader('Content-Type', mime.contentType(path.extname(data.data.filename)))
+      res.setHeader('Content-Type', mime.contentType(path.extname(data.filename)))
 
-      res.end(data.data.content)
+      res.end(data.content)
     }
 
     // 4.2 show directory or not-found
@@ -248,13 +246,9 @@ let transformer = {
     let { type, data = {} } = result
 
     if (type === FileType.NOT_FOUND) {
-      return {
-        type,
-        data: {
-          ...data, mime: mime.contentType('.html'),
-        }
-      }
+      return { type }
     }
+
     if (type === FileType.DIRECTORY) {
       let { fileMapList, pathList } = prepareDirectoryData(data.files, {
         pathname,
@@ -262,27 +256,18 @@ let transformer = {
         vd
       })
 
-      data.fileMapList = fileMapList
-      data.pathList = pathList
-
       return {
         type,
-        data: {
-          ...data,
-          mime: mime.contentType('.html'),
-          pathList,
-          fileMapList
-        }
+        pathList,
+        fileMapList
       }
     }
     
     if (type === FileType.FILE) {
       return {
         type,
-        data: {
-          ...data,
-          mime: mime.contentType(path.extname(data.filename))
-        }
+        filename: data.filename,
+        content: data.content
       }
     }
   }
