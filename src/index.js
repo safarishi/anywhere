@@ -131,7 +131,7 @@ function static(options) {
     let result = await reader.read(pathname)
 
     // 3 transformer result -> renderableData
-    let renderableData = await transformer.transform(result, {
+    let renderableData = transformer.transform(result, {
       pathname,
       isVdActived,
       vd
@@ -192,6 +192,16 @@ let reader = {
       data.mime = mime.contentType('.html')
 
       data.files = await readdir(filename)
+
+      data.files = await Promise.all(data.files.map(async file => {
+        let { isFile, isDirectory } = await getFileInfo(path.join(filename, file))
+
+        return {
+          name: file,
+          isFile,
+          isDirectory
+        }
+      }))
     }
 
     return {
@@ -231,7 +241,7 @@ async function getFileInfo(filename) {
 }
 
 let transformer = {
-  transform: async (result, { pathname, isVdActived, vd }) => {
+  transform: (result, { pathname, isVdActived, vd }) => {
     let { type, data = {} } = result
 
     if (type === FileType.NOT_FOUND) {
@@ -239,7 +249,7 @@ let transformer = {
 
       data.content = 'Page 404'
     } else if (type === FileType.DIRECTORY) {
-      let { fileMapList, pathList } = await prepareDirectoryData(data.files, {
+      let { fileMapList, pathList } = prepareDirectoryData(data.files, {
         pathname,
         isVdActived,
         vd
@@ -253,13 +263,12 @@ let transformer = {
   }
 }
 
-async function prepareDirectoryData(files, { pathname, vd, isVdActived }) {
+function prepareDirectoryData(files, { pathname, vd, isVdActived }) {
   if (pathname !== '/' && pathname !== '') {
-    files = ['..', ...files]
+    files = [{ name: '..', isDirectory: true, isFile: false }, ...files]
   }
 
   let fileMapList = files
-    .map(file => ({ name: file }))
     .map(item => {
       let { name } = item
 
@@ -276,8 +285,7 @@ async function prepareDirectoryData(files, { pathname, vd, isVdActived }) {
         filename
       }
     })
-
-  fileMapList = await Promise.all(fileMapList.map(addClzNameProp))
+    .map(addClzNameProp)
 
   let pathList = createPathList(pathname, { vd, isVdActived })
 
@@ -287,18 +295,16 @@ async function prepareDirectoryData(files, { pathname, vd, isVdActived }) {
   }
 }
 
-async function addClzNameProp(obj) {
+function addClzNameProp(obj) {
   let clzName = 'icon'
 
-  let { filename } = obj
-
-  let { isFile, isDirectory } = await getFileInfo(filename)
+  let { filename, isFile, isDirectory } = obj
 
   if (isDirectory) {
     clzName += ' icon-directory'
   } else if (isFile) {
     let contentType = mime.lookup(filename)
-
+    
     if (contentType) {
       clzName += ' icon-' + contentType.replace(/[/|.]/g, '-')
     } else {
