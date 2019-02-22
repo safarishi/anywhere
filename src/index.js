@@ -21,6 +21,89 @@ let readFile = promisify(fs.readFile)
 let readdir = promisify(fs.readdir)
 let realpath = promisify(fs.realpath)
 
+let renderer = {
+  render: ({ type, data = {} }) => {
+    let { fileMapList, pathList } = data
+
+    if (type === FileType.DIRECTORY) {
+      let html = renderer.renderDirectory({ fileMapList, pathList })
+
+      return html
+    }
+
+    return data.content
+  },
+
+  renderDirectory: ({ pathList = [], fileMapList = [] }) => {
+    if (!pathList.length && !fileMapList.length) {
+      return renderer.renderToHtml()
+    }
+
+    let title = ''
+    let nav = ''
+    let content = ''
+
+    if (pathList.length) {
+      title = pathList[pathList.length - 1].relativePath
+
+      nav = `
+        <h1>
+          ${pathList
+            .map(({ name, href }) => {
+              return ` <a href="${href}">${name}</a> /`
+            })
+            .join('')}
+        </h1>
+      `
+    }
+
+    if (fileMapList.length) {
+      content = `
+        <ul id="files">
+          ${fileMapList
+            .map(({ name, href, clzName }) => {
+              return `
+              <li>
+                <a class="${clzName}" href="${href}">
+                  <span class="name">${name}</span>
+                </a>
+              </li>
+            `
+            })
+            .join('')}
+        </ul>
+      `
+    }
+
+    return renderer.renderToHtml({
+      title,
+      nav,
+      content
+    })
+  },
+
+  renderToHtml: ({ title = '', nav = '', content = '' } = {}) => {
+    return `
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+          />
+          <title>directory ${title}</title>
+          <link rel="stylesheet" href="/public/assets/style.css" />
+          <link rel="stylesheet" href="/public/assets/icon.css" />
+        </head>
+        <body class="directory">
+          ${nav}
+          ${content}
+        </body>
+      </html>
+    `
+  }
+}
+
 main()
 
 function main() {
@@ -38,6 +121,8 @@ function main() {
 function static(options) {
   let { vd } = options
 
+  let finalRenderer = options.renderer || renderer
+
   return async (req, res) => {
     // 1 url-resolver req.url -> { pathname }
     let { pathname, isVdActived } = resolver.resolve(req.url, vd)
@@ -53,7 +138,7 @@ function static(options) {
     })
 
     // 4 renderer renderableData -> data
-    let data = renderer.render(renderableData)
+    let data = finalRenderer.render(renderableData)
 
     // 5 set content header
     if (renderableData.data.mime) {
@@ -224,89 +309,6 @@ async function addClzNameProp(obj) {
   return {
     ...obj,
     clzName
-  }
-}
-
-let renderer = {
-  render: ({ type, data = {} }) => {
-    let { fileMapList, pathList } = data
-
-    if (type === FileType.DIRECTORY) {
-      let html = renderer.renderDirectory({ fileMapList, pathList })
-
-      return html
-    }
-
-    return data.content
-  },
-
-  renderDirectory: ({ pathList = [], fileMapList = [] }) => {
-    if (!pathList.length && !fileMapList.length) {
-      return renderer.renderToHtml()
-    }
-
-    let title = ''
-    let nav = ''
-    let content = ''
-
-    if (pathList.length) {
-      title = pathList[pathList.length - 1].relativePath
-
-      nav = `
-        <h1>
-          ${pathList
-            .map(({ name, href }) => {
-              return ` <a href="${href}">${name}</a> /`
-            })
-            .join('')}
-        </h1>
-      `
-    }
-
-    if (fileMapList.length) {
-      content = `
-        <ul id="files">
-          ${fileMapList
-            .map(({ name, href, clzName }) => {
-              return `
-              <li>
-                <a class="${clzName}" href="${href}">
-                  <span class="name">${name}</span>
-                </a>
-              </li>
-            `
-            })
-            .join('')}
-        </ul>
-      `
-    }
-
-    return renderer.renderToHtml({
-      title,
-      nav,
-      content
-    })
-  },
-
-  renderToHtml: ({ title = '', nav = '', content = '' } = {}) => {
-    return `
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-          />
-          <title>directory ${title}</title>
-          <link rel="stylesheet" href="/public/assets/style.css" />
-          <link rel="stylesheet" href="/public/assets/icon.css" />
-        </head>
-        <body class="directory">
-          ${nav}
-          ${content}
-        </body>
-      </html>
-    `
   }
 }
 
