@@ -193,27 +193,33 @@ let reader = {
     if (isFile) {
       data.content = await readFile(filename)
     } else if (isDirectory) {
-      data.files = await readdir(filename)
-
-      data.files = await Promise.all(
-        data.files.map(async file => {
-          let { isFile, isDirectory } = await getFileInfo(
-            path.join(filename, file)
-          )
-
-          return {
-            name: file,
-            isFile,
-            isDirectory
-          }
-        })
-      )
+      data.files = await reader.readDirectory(filename)
     }
 
     return {
       type,
       data
     }
+  },
+
+  readDirectory: async (filename) => {
+    let files = await readdir(filename)
+
+    files = await Promise.all(
+      files.map(async file => {
+        let { isFile, isDirectory } = await getFileInfo(
+          path.join(filename, file)
+        )
+
+        return {
+          name: file,
+          isFile,
+          isDirectory
+        }
+      })
+    )
+
+    return files
   }
 }
 
@@ -255,17 +261,7 @@ let transformer = {
     }
 
     if (type === FileType.DIRECTORY) {
-      let { fileMapList, pathList } = prepareDirectoryData(data.files, {
-        pathname,
-        isVdActived,
-        vd
-      })
-
-      return {
-        type,
-        pathList,
-        fileMapList
-      }
+      return transformer.transformDirectory({ files: data.files, vd, isVdActived, pathname, type })
     }
 
     if (type === FileType.FILE) {
@@ -274,6 +270,20 @@ let transformer = {
         filename: data.filename,
         content: data.content
       }
+    }
+  },
+
+  transformDirectory: ({ files, vd, isVdActived, type, pathname }) => {
+    let { fileMapList, pathList } = prepareDirectoryData(files, {
+      pathname,
+      isVdActived,
+      vd
+    })
+
+    return {
+      type,
+      pathList,
+      fileMapList
     }
   }
 }
