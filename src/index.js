@@ -139,14 +139,17 @@ function static(options) {
 
     // 4.1 send static file
     if (data.type === FileType.FILE) {
-      res.setHeader('Content-Type', mime.contentType(path.extname(data.filename)))
+      res.setHeader(
+        'Content-Type',
+        mime.contentType(path.extname(data.filename))
+      )
       res.end(data.content)
     }
 
     // 4.2 show directory or not-found
     if (data.type === FileType.DIRECTORY || data.type === FileType.NOT_FOUND) {
       let html = finalRenderer.render(data)
-      
+
       res.setHeader('Content-Type', mime.contentType('.html'))
       res.end(html)
     }
@@ -192,15 +195,19 @@ let reader = {
     } else if (isDirectory) {
       data.files = await readdir(filename)
 
-      data.files = await Promise.all(data.files.map(async file => {
-        let { isFile, isDirectory } = await getFileInfo(path.join(filename, file))
+      data.files = await Promise.all(
+        data.files.map(async file => {
+          let { isFile, isDirectory } = await getFileInfo(
+            path.join(filename, file)
+          )
 
-        return {
-          name: file,
-          isFile,
-          isDirectory
-        }
-      }))
+          return {
+            name: file,
+            isFile,
+            isDirectory
+          }
+        })
+      )
     }
 
     return {
@@ -260,7 +267,7 @@ let transformer = {
         fileMapList
       }
     }
-    
+
     if (type === FileType.FILE) {
       return {
         type,
