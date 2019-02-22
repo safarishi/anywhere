@@ -64,7 +64,7 @@ function static(options) {
       res.setHeader('Content-Type', renderableData.data.mime)
     }
 
-    // response
+    // 6 response
     res.end(data)
   }
 }
