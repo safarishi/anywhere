@@ -174,7 +174,7 @@ let resolver = {
 let reader = {
   /**
    * @return {object}
-   * { type: '404|file|directory', data: { filename, content?, files? } }
+   * { type: '404|file|directory', data: { filename, content, files } }
    */
   read: async pathname => {
     let filename = path.join(cwd, pathname)
