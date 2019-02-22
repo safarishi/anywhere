@@ -32,11 +32,11 @@ main()
 
 function main() {
   let port = 9900
-  
+
   let options = {
     vd: '/static'
   }
-  
+
   http.createServer(static(options)).listen({ port }, () => {
     console.log('Server is running at http://localhost:' + port)
   })
@@ -44,7 +44,7 @@ function main() {
 
 function static(options) {
   let { vd } = options
-  
+
   return async (req, res) => {
     // 1 url-resolver req.url -> { pathname }
     let { pathname, isVdActived } = resolver.resolve(req.url, vd)
@@ -53,8 +53,11 @@ function static(options) {
     let result = await reader.read(pathname)
 
     // 3 transformer result -> renderableData
-    let renderableData = await transformer. transform
-    (result, { pathname, isVdActived, vd })
+    let renderableData = await transformer.transform(result, {
+      pathname,
+      isVdActived,
+      vd
+    })
 
     // 4 renderer renderableData -> data
     let data = renderer.render(renderableData)
@@ -80,7 +83,7 @@ let resolver = {
     if (isVdActived) {
       pathname = pathname.replace(vd, '')
     }
-    
+
     return { pathname, isVdActived }
   }
 }
@@ -90,12 +93,16 @@ let reader = {
    * @return {object}
    * { type: '404|file|directory', data: { mime, content, files } }
    */
-  read: async (pathname) => {
+  read: async pathname => {
     let filename = path.join(cwd, pathname)
 
     let { isFile, isDirectory } = await readFileInfo(filename)
 
-    let type = isFile ? defaultTypeMap.FILE : (isDirectory ? defaultTypeMap.DIRECTORY : defaultTypeMap.NOT_FOUND)
+    let type = isFile
+      ? defaultTypeMap.FILE
+      : isDirectory
+      ? defaultTypeMap.DIRECTORY
+      : defaultTypeMap.NOT_FOUND
 
     let data = {}
 
@@ -110,7 +117,8 @@ let reader = {
     }
 
     return {
-      type, data
+      type,
+      data
     }
   }
 }
@@ -121,7 +129,7 @@ async function readFileInfo(filename) {
   if (!isExist) return { isExist }
 
   let { isFile, isDirectory } = await getFileInfo(filename)
-  
+
   return { isFile, isDirectory }
 }
 
@@ -139,21 +147,26 @@ async function getFileInfo(filename) {
   }
 
   return {
-    isFile, isDirectory
+    isFile,
+    isDirectory
   }
 }
 
 let transformer = {
-  transform: async (result, { pathname, isVdActived, vd}) => {
+  transform: async (result, { pathname, isVdActived, vd }) => {
     let { type, data = {} } = result
 
     if (type === defaultTypeMap.NOT_FOUND) {
       data.mime = defaultMimeMap.html
-      
+
       data.content = 'Page 404'
     } else if (type === defaultTypeMap.DIRECTORY) {
-      let { fileMapList, pathList } = await prepareDirectoryData(data.files, { pathname, isVdActived, vd})
-      
+      let { fileMapList, pathList } = await prepareDirectoryData(data.files, {
+        pathname,
+        isVdActived,
+        vd
+      })
+
       data.fileMapList = fileMapList
       data.pathList = pathList
     }
@@ -166,8 +179,9 @@ async function prepareDirectoryData(files, { pathname, vd, isVdActived }) {
   if (pathname !== '/' && pathname !== '') {
     files = ['..', ...files]
   }
-  
-  let fileMapList = files.map(file => ({ name: file }))
+
+  let fileMapList = files
+    .map(file => ({ name: file }))
     .map(item => {
       let { name } = item
 
@@ -184,13 +198,14 @@ async function prepareDirectoryData(files, { pathname, vd, isVdActived }) {
         filename
       }
     })
-  
+
   fileMapList = await Promise.all(fileMapList.map(addClzNameProp))
 
   let pathList = createPathList(pathname, { vd, isVdActived })
-  
+
   return {
-    fileMapList, pathList
+    fileMapList,
+    pathList
   }
 }
 
@@ -198,7 +213,7 @@ async function addClzNameProp(obj) {
   let clzName = 'icon'
 
   let { filename } = obj
-  
+
   let { isFile, isDirectory } = await getFileInfo(filename)
 
   if (isDirectory) {
@@ -212,7 +227,7 @@ async function addClzNameProp(obj) {
       clzName += ' icon-default'
     }
   }
-  
+
   return {
     ...obj,
     clzName
@@ -222,17 +237,17 @@ async function addClzNameProp(obj) {
 let renderer = {
   render: ({ type, data = {} }) => {
     let { fileMapList, pathList } = data
-    
+
     if (type === defaultTypeMap.DIRECTORY) {
       let html = renderer.renderDirectory({ fileMapList, pathList })
-      
+
       return html
     }
 
     return data.content
   },
 
-  renderDirectory: ({ pathList = [], fileMapList = []}) => {
+  renderDirectory: ({ pathList = [], fileMapList = [] }) => {
     if (!pathList.length && !fileMapList.length) {
       return renderer.renderToHtml()
     }
@@ -246,9 +261,11 @@ let renderer = {
 
       nav = `
         <h1>
-          ${pathList.map(({ name, href }) => {
-            return ` <a href="${href}">${name}</a> /`
-          }).join('')}
+          ${pathList
+            .map(({ name, href }) => {
+              return ` <a href="${href}">${name}</a> /`
+            })
+            .join('')}
         </h1>
       `
     }
@@ -256,21 +273,25 @@ let renderer = {
     if (fileMapList.length) {
       content = `
         <ul id="files">
-          ${fileMapList.map(({ name, href, clzName }) => {
-            return `
+          ${fileMapList
+            .map(({ name, href, clzName }) => {
+              return `
               <li>
                 <a class="${clzName}" href="${href}">
                   <span class="name">${name}</span>
                 </a>
               </li>
             `
-          }).join('')}
+            })
+            .join('')}
         </ul>
       `
     }
 
     return renderer.renderToHtml({
-      title, nav, content
+      title,
+      nav,
+      content
     })
   },
 
@@ -297,7 +318,8 @@ let renderer = {
 }
 
 function createPathList(pathname, { isVdActived, vd }) {
-  let pathList = pathname.split('/')
+  let pathList = pathname
+    .split('/')
     .filter(Boolean)
     .map(_ => '/' + _)
     .map(mapValue)
@@ -310,7 +332,7 @@ function createPathList(pathname, { isVdActived, vd }) {
         href: isVdActived ? path.join(vd, href) : href
       }
     })
-  
+
   // 去首页path链接对象
   pathList.unshift({
     name: '~',
