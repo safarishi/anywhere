@@ -133,22 +133,27 @@ function static(options) {
     let result = await reader.read(pathname)
 
     // 3 transformer result -> renderableData
-    let renderableData = transformer.transform(result, {
+    let data = transformer.transform(result, {
       pathname,
       isVdActived,
       vd
     })
 
-    // 4 renderer renderableData -> data
-    let data = finalRenderer.render(renderableData)
+    // 4.1 send static file
+    if (data.type === FileType.FILE) {
+      res.setHeader('Content-Type', mime.contentType(path.extname(data.data.filename)))
 
-    // 5 set content header
-    if (renderableData.data.mime) {
-      res.setHeader('Content-Type', renderableData.data.mime)
+      res.end(data.data.content)
     }
 
-    // 6 response
-    res.end(data)
+    // 4.2 show directory or not-found
+    if (data.type === FileType.DIRECTORY || data.type === FileType.NOT_FOUND) {
+      let html = finalRenderer.render(data)
+      
+      res.setHeader('Content-Type', mime.contentType('.html'))
+
+      res.end(html)
+    }
   }
 }
 
