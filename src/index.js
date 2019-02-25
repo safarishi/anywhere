@@ -3,6 +3,7 @@ let os = require('os')
 let url = require('url')
 let http = require('http')
 let path = require('path')
+let querystring = require('querystring')
 let promisify = require('util').promisify
 let mime = require('mime-types')
 
@@ -158,11 +159,17 @@ function static(options) {
 
 let resolver = {
   resolve: (requestUrl, vd) => {
-    let { pathname } = url.parse(requestUrl)
+    let { pathname, query } = url.parse(requestUrl)
 
     pathname = decodeURIComponent(pathname)
-
+    
     let isVdActived = requestUrl.startsWith(vd)
+    
+    let { disable_vd: disableVd } = querystring.parse(query)
+
+    if (disableVd === '1') {
+      isVdActived = false
+    }
 
     if (isVdActived) {
       pathname = pathname.replace(vd, '')
@@ -300,6 +307,10 @@ function prepareDirectoryData(files, { pathname, vd, isVdActived }) {
       let relativePath = path.join(pathname, name)
 
       let href = isVdActived ? path.join(vd, relativePath) : relativePath
+
+      if (!isVdActived && relativePath.startsWith(vd)) {
+        href += '?disable_vd=1'
+      }
 
       let filename = path.join(cwd, relativePath)
 
