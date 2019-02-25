@@ -363,10 +363,19 @@ function createPathList(pathname, { isVdActived, vd }) {
     // { name, href }
     .map(item => {
       let { href } = item
+
+      let relativePath = href
+
+      let nextHref = isVdActived ? path.join(vd, href) : relativePath
+
+      if (!isVdActived & relativePath.startsWith(vd)) {
+        nextHref += '?disable_vd=1'
+      }
+      
       return {
         ...item,
-        relativePath: href,
-        href: isVdActived ? path.join(vd, href) : href
+        relativePath,
+        href: nextHref
       }
     })
 
