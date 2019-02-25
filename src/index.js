@@ -310,7 +310,7 @@ function prepareDirectoryData(files, { pathname, vd, isVdActived }) {
         filename
       }
     })
-    .map(addClzNameProp)
+    .map(addClassNameProp)
 
   let pathList = createPathList(pathname, { vd, isVdActived })
 
@@ -320,7 +320,7 @@ function prepareDirectoryData(files, { pathname, vd, isVdActived }) {
   }
 }
 
-function addClzNameProp(obj) {
+function addClassNameProp(obj) {
   let clzName = 'icon'
 
   let { filename, isFile, isDirectory } = obj
