@@ -93,8 +93,8 @@ let renderer = {
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
           />
           <title>directory ${title}</title>
-          <link rel="stylesheet" href="/public/assets/style.css" />
-          <link rel="stylesheet" href="/public/assets/icon.css" />
+          <link rel="stylesheet" href="/public/assets/style.css?disable_public_path=1" />
+          <link rel="stylesheet" href="/public/assets/icon.css?disable_public_path=1" />
         </head>
         <body class="directory">
           ${nav}
@@ -111,7 +111,8 @@ function main() {
   let port = 9900
 
   let options = {
-    vd: '/static'
+    vd: '/static',
+    publicPath: '/public'
   }
 
   http.createServer(static(options)).listen({ port }, () => {
@@ -120,22 +121,29 @@ function main() {
 }
 
 function static(options) {
-  let { vd } = options
+  let { vd, publicPath = '/' } = options
 
   let finalRenderer = options.renderer || renderer
-
+  
   return async (req, res) => {
     // 1 url-resolver req.url -> { pathname }
-    let { pathname, isVdActived } = resolver.resolve(req.url, vd)
+    let { pathname, isVdActived, disablePublicPath } = resolver.resolve(req.url, vd)
+    
+    var rootPath = path.join(cwd, publicPath)
+
+    if (disablePublicPath) {
+      rootPath = cwd
+    }
 
     // 2 fs-reader pathname -> result
-    let result = await reader.read(pathname)
+    let result = await reader.read(pathname, { rootPath })
 
     // 3 transformer result -> renderableData
     let data = transformer.transform(result, {
       pathname,
       isVdActived,
-      vd
+      vd,
+      rootPath
     })
 
     // 4.1 send static file
@@ -165,7 +173,7 @@ let resolver = {
     
     let isVdActived = requestUrl.startsWith(vd)
     
-    let { disable_vd: disableVd } = querystring.parse(query)
+    let { disable_vd: disableVd, disable_public_path: disablePublicPath } = querystring.parse(query)
 
     if (disableVd === '1') {
       isVdActived = false
@@ -175,7 +183,9 @@ let resolver = {
       pathname = pathname.replace(vd, '')
     }
 
-    return { pathname, isVdActived }
+    disablePublicPath = disablePublicPath === '1'
+
+    return { pathname, isVdActived, disablePublicPath }
   }
 }
 
@@ -184,8 +194,8 @@ let reader = {
    * @return {object}
    * { type: '404|file|directory', data: { filename, content, files } }
    */
-  read: async pathname => {
-    let filename = path.join(cwd, pathname)
+  read: async (pathname, { rootPath }) => {
+    let filename = path.join(rootPath, pathname)
 
     let { isFile, isDirectory } = await readFileInfo(filename)
 
@@ -260,7 +270,7 @@ async function getFileInfo(filename) {
 }
 
 let transformer = {
-  transform: (result, { pathname, isVdActived, vd }) => {
+  transform: (result, { pathname, isVdActived, vd, rootPath }) => {
     let { type, data = {} } = result
 
     if (type === FileType.NOT_FOUND) {
@@ -268,7 +278,7 @@ let transformer = {
     }
 
     if (type === FileType.DIRECTORY) {
-      return transformer.transformDirectory({ files: data.files, vd, isVdActived, pathname, type })
+      return transformer.transformDirectory({ files: data.files, vd, isVdActived, pathname, type, rootPath })
     }
 
     if (type === FileType.FILE) {
@@ -280,11 +290,12 @@ let transformer = {
     }
   },
 
-  transformDirectory: ({ files, vd, isVdActived, type, pathname }) => {
+  transformDirectory: ({ files, vd, isVdActived, type, pathname, rootPath }) => {
     let { fileMapList, pathList } = prepareDirectoryData(files, {
       pathname,
       isVdActived,
-      vd
+      vd,
+      rootPath
     })
 
     return {
@@ -295,7 +306,7 @@ let transformer = {
   }
 }
 
-function prepareDirectoryData(files, { pathname, vd, isVdActived }) {
+function prepareDirectoryData(files, { pathname, vd, isVdActived, rootPath }) {
   if (pathname !== '/' && pathname !== '') {
     files = [{ name: '..', isDirectory: true, isFile: false }, ...files]
   }
@@ -312,7 +323,7 @@ function prepareDirectoryData(files, { pathname, vd, isVdActived }) {
         href += '?disable_vd=1'
       }
 
-      let filename = path.join(cwd, relativePath)
+      let filename = path.join(rootPath, relativePath)
 
       return {
         ...item,
