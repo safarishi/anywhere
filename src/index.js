@@ -10,28 +10,7 @@ let promisify = require('util').promisify
 let exec = require('child_process').exec
 let mime = require('mime-types')
 
-let args = getCommandArguments()
-
-function getCommandArguments() {
-  let args1 = process.argv.reduce((acc, cur, idx, src) => {
-    if (cur.startsWith('-')) {
-      acc[cur] = src[idx + 1]
-    }
-    return acc
-  }, {})
-  
-  let args2 = process.argv
-    .filter(_ => _.startsWith('--'))
-    .reduce((acc, cur) => {
-      let [key, value] = cur.split('=')
-      acc[key] = value
-      return acc
-    }, {})
-    
-  let args = { ...args1, ...args2 }
-
-  return args
-}
+let args = getCommandArgs()
 
 // 读取 pathname 对应的文件类型
 let FileType = {
@@ -158,7 +137,7 @@ async function main() {
     let url = 'http://localhost:' + port
 
     console.log('Server is running at ' + url)
-    
+
     openBrowser(url)
   })
 }
@@ -490,4 +469,25 @@ async function createStyleSheet() {
   )).map(content => {
     return `<style>${content}</style>`
   })
+}
+
+function getCommandArgs() {
+  let args1 = process.argv.reduce((acc, cur, idx, src) => {
+    if (cur.startsWith('-')) {
+      acc[cur] = src[idx + 1]
+    }
+    return acc
+  }, {})
+  
+  let args2 = process.argv
+    .filter(_ => _.startsWith('--'))
+    .reduce((acc, cur) => {
+      let [key, value] = cur.split('=')
+      acc[key] = value
+      return acc
+    }, {})
+    
+  let args = { ...args1, ...args2 }
+
+  return args
 }
