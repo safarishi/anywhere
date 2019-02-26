@@ -119,10 +119,10 @@ async function main() {
 
   let options = {}
 
-  let venderName = args['--vd'] || args['-vd']
+  let virtualDirectory = args['--vd'] || args['-vd']
 
-  if (venderName) {
-    options.vd = venderName
+  if (virtualDirectory) {
+    options.vd = virtualDirectory
   }
 
   let publicPath = args['--public-path'] || args['-publicPath'] || args['-d']
