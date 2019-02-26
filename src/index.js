@@ -143,7 +143,7 @@ function main() {
     options.vd = venderName
   }
 
-  let publicPath = args['--public-path'] || args['-publicPath']
+  let publicPath = args['--public-path'] || args['-publicPath'] || args['-d']
 
   if (publicPath) {
     options.publicPath = publicPath
