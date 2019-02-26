@@ -151,8 +151,11 @@ async function static(options) {
 
   return async (req, res) => {
     // 1 url-resolver req.url -> { pathname }
-    let { pathname, isVdActived, disablePublicPath } = resolver.resolve(req.url, vd)
-    
+    let { pathname, isVdActived, disablePublicPath } = resolver.resolve(
+      req.url,
+      vd
+    )
+
     var rootPath = path.join(cwd, publicPath)
 
     if (disablePublicPath) {
@@ -175,7 +178,7 @@ async function static(options) {
       let ext = path.extname(data.filename) || '.txt'
 
       let contentType = mime.contentType(ext)
-      
+
       res.setHeader('Content-Type', contentType)
       res.end(data.content)
     }
@@ -195,10 +198,13 @@ let resolver = {
     let { pathname, query } = url.parse(requestUrl)
 
     pathname = decodeURIComponent(pathname)
-    
+
     let isVdActived = requestUrl.startsWith(vd)
-    
-    let { disable_vd: disableVd, disable_public_path: disablePublicPath } = querystring.parse(query)
+
+    let {
+      disable_vd: disableVd,
+      disable_public_path: disablePublicPath
+    } = querystring.parse(query)
 
     if (disableVd === '1') {
       isVdActived = false
@@ -244,7 +250,7 @@ let reader = {
     }
   },
 
-  readDirectory: async (filename) => {
+  readDirectory: async filename => {
     let files = await readdir(filename)
 
     files = await Promise.all(
@@ -303,7 +309,14 @@ let transformer = {
     }
 
     if (type === FileType.DIRECTORY) {
-      return transformer.transformDirectory({ files: data.files, vd, isVdActived, pathname, type, rootPath })
+      return transformer.transformDirectory({
+        files: data.files,
+        vd,
+        isVdActived,
+        pathname,
+        type,
+        rootPath
+      })
     }
 
     if (type === FileType.FILE) {
@@ -315,7 +328,14 @@ let transformer = {
     }
   },
 
-  transformDirectory: ({ files, vd, isVdActived, type, pathname, rootPath }) => {
+  transformDirectory: ({
+    files,
+    vd,
+    isVdActived,
+    type,
+    pathname,
+    rootPath
+  }) => {
     let { fileMapList, pathList } = prepareDirectoryData(files, {
       pathname,
       isVdActived,
@@ -407,7 +427,7 @@ function createPathList(pathname, { isVdActived, vd }) {
       if (!isVdActived & relativePath.startsWith(vd)) {
         nextHref += '?disable_vd=1'
       }
-      
+
       return {
         ...item,
         relativePath,
@@ -478,7 +498,7 @@ function getCommandArgs() {
     }
     return acc
   }, {})
-  
+
   let args2 = process.argv
     .filter(_ => _.startsWith('--'))
     .reduce((acc, cur) => {
@@ -486,7 +506,7 @@ function getCommandArgs() {
       acc[key] = value
       return acc
     }, {})
-    
+
   let args = { ...args1, ...args2 }
 
   return args
