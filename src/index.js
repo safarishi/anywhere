@@ -10,6 +10,7 @@ let promisify = require('util').promisify
 let exec = require('child_process').exec
 let mime = require('mime-types')
 
+// 获取命令行输入参数
 let args = getCommandArgs()
 
 // 读取 pathname 对应的文件类型
@@ -230,7 +231,7 @@ let resolver = {
 let reader = {
   /**
    * @return {object}
-   * { type: '404|file|directory', data: { filename, content, files } }
+   * { type: '404|file|directory|error', data: { filename, content, files } }
    */
   read: async (pathname, { rootPath }) => {
     let filename = path.join(rootPath, pathname)
@@ -511,7 +512,7 @@ async function createStyleSheet() {
     })
   )).map(content => {
     return `<style>${content}</style>`
-  })
+  }).join('')
 }
 
 function getCommandArgs() {
