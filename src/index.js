@@ -166,7 +166,6 @@ async function static(options) {
   let css = await createStyleSheet()
 
   return async (req, res) => {
-
     // 1 url-resolver req.url -> { pathname }
     let { pathname, isVdActived, disablePublicPath } = resolver.resolve(req.url, vd)
     
@@ -189,10 +188,11 @@ async function static(options) {
 
     // 4.1 send static file
     if (data.type === FileType.FILE) {
-      res.setHeader(
-        'Content-Type',
-        mime.contentType(path.extname(data.filename))
-      )
+      let ext = path.extname(data.filename) || '.txt'
+
+      let contentType = mime.contentType(ext)
+      
+      res.setHeader('Content-Type', contentType)
       res.end(data.content)
     }
 
