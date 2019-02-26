@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 let fs = require('fs')
 let os = require('os')
 let url = require('url')
