@@ -7,6 +7,7 @@ let http = require('http')
 let path = require('path')
 let querystring = require('querystring')
 let promisify = require('util').promisify
+let exec = require('child_process').exec
 let mime = require('mime-types')
 
 let args = getCommandArguments()
@@ -154,7 +155,11 @@ async function main() {
   let handleRequest = await static(options)
 
   http.createServer(handleRequest).listen({ port }, () => {
-    console.log('Server is running at http://localhost:' + port)
+    let url = 'http://localhost:' + port
+
+    console.log('Server is running at ' + url)
+    
+    openBrowser(url)
   })
 }
 
