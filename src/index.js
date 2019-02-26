@@ -16,7 +16,8 @@ let args = getCommandArgs()
 let FileType = {
   FILE: 'file',
   NOT_FOUND: '404',
-  DIRECTORY: 'directory'
+  DIRECTORY: 'directory',
+  ERROR: 'error'
 }
 
 let cwd = process.cwd()
@@ -183,10 +184,16 @@ async function static(options) {
       res.end(data.content)
     }
 
-    // 4.2 show directory or not-found
-    if (data.type === FileType.DIRECTORY || data.type === FileType.NOT_FOUND) {
-      let html = finalRenderer.render(data, { css })
+    let isError = FileType.ERROR === data.type
+    
+    // 4.2 show directory or not-found or error
+    if (data.type === FileType.DIRECTORY || data.type === FileType.NOT_FOUND || isError) {
+      let html = finalRenderer.render(data, { css, isError })
 
+      if (isError) {
+        res.statusCode = 500
+      }
+      
       res.setHeader('Content-Type', mime.contentType('.html'))
       res.end(html)
     }
@@ -238,15 +245,24 @@ let reader = {
 
     let data = { filename }
 
-    if (isFile) {
-      data.content = await readFile(filename)
-    } else if (isDirectory) {
-      data.files = await reader.readDirectory(filename)
-    }
-
-    return {
-      type,
-      data
+    try {
+      if (isFile) {
+        data.content = await readFile(filename)
+      } else if (isDirectory) {
+        data.files = await reader.readDirectory(filename)
+      }
+  
+      return {
+        type,
+        data
+      }
+    } catch (error) {
+      return {
+        type: FileType.ERROR,
+        data: {
+          content: error.message
+        }
+      }
     }
   },
 
@@ -323,6 +339,13 @@ let transformer = {
       return {
         type,
         filename: data.filename,
+        content: data.content
+      }
+    }
+
+    if (type === FileType.ERROR) {
+      return {
+        type,
         content: data.content
       }
     }
