@@ -9,13 +9,28 @@ let querystring = require('querystring')
 let promisify = require('util').promisify
 let mime = require('mime-types')
 
-let args = process.argv
-  .filter(_ => _.startsWith('--'))
-  .reduce((acc, cur) => {
-    let [key, value] = cur.split('=')
-    acc[key] = value
+let args = getCommandArguments()
+
+function getCommandArguments() {
+  let args1 = process.argv.reduce((acc, cur, idx, src) => {
+    if (cur.startsWith('-')) {
+      acc[cur] = src[idx + 1]
+    }
     return acc
   }, {})
+  
+  let args2 = process.argv
+    .filter(_ => _.startsWith('--'))
+    .reduce((acc, cur) => {
+      let [key, value] = cur.split('=')
+      acc[key] = value
+      return acc
+    }, {})
+    
+  let args = { ...args1, ...args2 }
+
+  return args
+}
 
 // 读取 pathname 对应的文件类型
 let FileType = {
@@ -118,16 +133,20 @@ let renderer = {
 main()
 
 function main() {
-  let port = args['--port'] || 9900
+  let port = args['--port'] || args['-p'] || 9900
 
   let options = {}
 
-  if (args['--vd']) {
-    options.vd = args['--vd']
+  let venderName = args['--vd'] || args['-vd']
+
+  if (venderName) {
+    options.vd = venderName
   }
 
-  if (args['--public-path']) {
-    options.publicPath = args['--public-path']
+  let publicPath = args['--public-path'] || args['-publicPath']
+
+  if (publicPath) {
+    options.publicPath = publicPath
   }
 
   http.createServer(static(options)).listen({ port }, () => {
