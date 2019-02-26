@@ -1,8 +1,11 @@
 {
   "name": "my-anywhere",
-  "version": "1.0.21",
+  "version": "1.0.3",
   "description": "NodeJs static file server",
   "main": "src/index.js",
+  "bin": {
+    "my-anywhere": "./src/index.js"
+  },
   "scripts": {
     "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
