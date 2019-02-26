@@ -9,6 +9,14 @@ let querystring = require('querystring')
 let promisify = require('util').promisify
 let mime = require('mime-types')
 
+let args = process.argv
+  .filter(_ => _.startsWith('--'))
+  .reduce((acc, cur) => {
+    let [key, value] = cur.split('=')
+    acc[key] = value
+    return acc
+  }, {})
+
 // 读取 pathname 对应的文件类型
 let FileType = {
   FILE: 'file',
@@ -110,11 +118,16 @@ let renderer = {
 main()
 
 function main() {
-  let port = 9900
+  let port = args['--port'] || 9900
 
-  let options = {
-    vd: '/static',
-    publicPath: '/public'
+  let options = {}
+
+  if (args['--vd']) {
+    options.vd = args['--vd']
+  }
+
+  if (args['--public-path']) {
+    options.publicPath = args['--public-path']
   }
 
   http.createServer(static(options)).listen({ port }, () => {
