@@ -48,19 +48,21 @@ let readdir = promisify(fs.readdir)
 let realpath = promisify(fs.realpath)
 
 let renderer = {
-  render: ({ type, fileMapList, pathList }) => {
+  render: (data = {}, { css }) => {
+    let { type, fileMapList, pathList, content } = data
+
     if (type === FileType.DIRECTORY) {
-      let html = renderer.renderDirectory({ fileMapList, pathList })
+      let html = renderer.renderDirectory({ fileMapList, pathList, css })
 
       return html
     } else if (type === FileType.NOT_FOUND) {
       return 'Page 404'
     }
 
-    return data.content
+    return content
   },
 
-  renderDirectory: ({ pathList = [], fileMapList = [] }) => {
+  renderDirectory: ({ pathList = [], fileMapList = [], css }) => {
     if (!pathList.length && !fileMapList.length) {
       return renderer.renderToHtml()
     }
@@ -104,11 +106,12 @@ let renderer = {
     return renderer.renderToHtml({
       title,
       nav,
-      content
+      content,
+      css
     })
   },
 
-  renderToHtml: ({ title = '', nav = '', content = '' } = {}) => {
+  renderToHtml: ({ title = '', nav = '', content = '', css = '' } = {}) => {
     return `
       <html>
         <head>
@@ -118,8 +121,7 @@ let renderer = {
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
           />
           <title>directory ${title}</title>
-          <link rel="stylesheet" href="/public/assets/style.css?disable_public_path=1" />
-          <link rel="stylesheet" href="/public/assets/icon.css?disable_public_path=1" />
+          ${css}
         </head>
         <body class="directory">
           ${nav}
@@ -132,7 +134,7 @@ let renderer = {
 
 main()
 
-function main() {
+async function main() {
   let port = args['--port'] || args['-p'] || 9900
 
   let options = {}
@@ -149,17 +151,22 @@ function main() {
     options.publicPath = publicPath
   }
 
-  http.createServer(static(options)).listen({ port }, () => {
+  let handleRequest = await static(options)
+
+  http.createServer(handleRequest).listen({ port }, () => {
     console.log('Server is running at http://localhost:' + port)
   })
 }
 
-function static(options) {
+async function static(options) {
   let { vd, publicPath = '/' } = options
 
   let finalRenderer = options.renderer || renderer
-  
+
+  let css = await createStyleSheet()
+
   return async (req, res) => {
+
     // 1 url-resolver req.url -> { pathname }
     let { pathname, isVdActived, disablePublicPath } = resolver.resolve(req.url, vd)
     
@@ -191,7 +198,7 @@ function static(options) {
 
     // 4.2 show directory or not-found
     if (data.type === FileType.DIRECTORY || data.type === FileType.NOT_FOUND) {
-      let html = finalRenderer.render(data)
+      let html = finalRenderer.render(data, { css })
 
       res.setHeader('Content-Type', mime.contentType('.html'))
       res.end(html)
@@ -465,4 +472,17 @@ function openBrowser(url) {
     command = 'start'
   }
   exec(`${command} ${url}`)
+}
+
+async function createStyleSheet() {
+  return (await Promise.all(
+    ['style.css', 'icon.css'].map(async value => {
+      return await readFile(
+        path.join(__dirname, '..', 'public/assets/' + value),
+        'utf8'
+      )
+    })
+  )).map(content => {
+    return `<style>${content}</style>`
+  })
 }
