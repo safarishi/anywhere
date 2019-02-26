@@ -1,6 +1,6 @@
 {
   "name": "my-anywhere",
-  "version": "1.0.5",
+  "version": "1.0.51",
   "description": "NodeJs static file server",
   "main": "src/index.js",
   "bin": {
@@ -10,9 +10,14 @@
     "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["NodeJS", "server", "file"],
   "author": "safarishi",
-  "license": "ISC",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/safarishi/anywhere.git"
+  },
+  "homepage": "https://github.com/safarishi/anywhere",
   "dependencies": {
     "mime-types": "^2.1.22"
   }

@@ -1,5 +1,9 @@
-# 从零开始搭建一个基于NODEJS的本地静态文件服务器
+# 基于 NodeJS 的本地静态文件服务器
 
-## Usage
+## Installation
 
 ### npm install my-anywhere -g
+
+## Execution
+
+    $ my-anywhere
