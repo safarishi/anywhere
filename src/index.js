@@ -6,8 +6,8 @@ let url = require('url')
 let http = require('http')
 let path = require('path')
 let querystring = require('querystring')
-let promisify = require('util').promisify
 let exec = require('child_process').exec
+let promisify = require('util').promisify
 let mime = require('mime-types')
 
 // 获取命令行输入参数
@@ -23,10 +23,10 @@ let FileType = {
 
 let cwd = process.cwd()
 
-let exists = promisify(fs.exists)
 let lstat = promisify(fs.lstat)
-let readFile = promisify(fs.readFile)
+let exists = promisify(fs.exists)
 let readdir = promisify(fs.readdir)
+let readFile = promisify(fs.readFile)
 let realpath = promisify(fs.realpath)
 
 let renderer = {
@@ -119,7 +119,9 @@ main()
 async function main() {
   let port = args['--port'] || args['-p'] || 9900
 
-  let options = {}
+  let options = {
+    publicPath: '/'
+  }
 
   let virtualDirectory = args['--vd'] || args['-vd']
 
@@ -136,7 +138,7 @@ async function main() {
   let handleRequest = await static(options)
 
   http.createServer(handleRequest).listen({ port }, () => {
-    let url = 'http://localhost:' + port
+    let url = `http://localhost:${port}`
 
     console.log('Server is running at ' + url)
 
@@ -145,7 +147,7 @@ async function main() {
 }
 
 async function static(options) {
-  let { vd, publicPath = '/' } = options
+  let { vd, publicPath } = options
 
   let finalRenderer = options.renderer || renderer
 
