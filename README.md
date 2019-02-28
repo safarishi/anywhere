@@ -1,4 +1,4 @@
-# 基于 NodeJS 的本地静态文件服务器
+# 本地静态文件服务器
 
 ## Installation
 

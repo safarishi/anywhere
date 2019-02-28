@@ -18,6 +18,7 @@ let FileType = {
   FILE: 'file',
   NOT_FOUND: '404',
   DIRECTORY: 'directory',
+  // 读取文件发生错误
   ERROR: 'error'
 }
 
