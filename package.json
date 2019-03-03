@@ -1,6 +1,6 @@
 {
   "name": "my-anywhere",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "NodeJs static file server",
   "main": "src/index.js",
   "bin": {

@@ -9,6 +9,7 @@ let querystring = require('querystring')
 let exec = require('child_process').exec
 let promisify = require('util').promisify
 let mime = require('mime-types')
+let style = require('./style')
 
 // 获取命令行输入参数
 let args = getCommandArgs()
@@ -27,15 +28,14 @@ let cwd = process.cwd()
 let lstat = promisify(fs.lstat)
 let exists = promisify(fs.exists)
 let readdir = promisify(fs.readdir)
-let readFile = promisify(fs.readFile)
 let realpath = promisify(fs.realpath)
 
 let renderer = {
-  render: (data = {}, { css }) => {
+  render: (data = {}) => {
     let { type, fileMapList, pathList, content } = data
 
     if (type === FileType.DIRECTORY) {
-      let html = renderer.renderDirectory({ fileMapList, pathList, css })
+      let html = renderer.renderDirectory({ fileMapList, pathList })
 
       return html
     } else if (type === FileType.NOT_FOUND) {
@@ -45,7 +45,7 @@ let renderer = {
     return content
   },
 
-  renderDirectory: ({ pathList = [], fileMapList = [], css }) => {
+  renderDirectory: ({ pathList = [], fileMapList = [] }) => {
     if (!pathList.length && !fileMapList.length) {
       return renderer.renderToHtml()
     }
@@ -89,12 +89,11 @@ let renderer = {
     return renderer.renderToHtml({
       title,
       nav,
-      content,
-      css
+      content
     })
   },
 
-  renderToHtml: ({ title = '', nav = '', content = '', css = '' } = {}) => {
+  renderToHtml: ({ title = '', nav = '', content = '' } = {}) => {
     return `
       <html>
         <head>
@@ -104,7 +103,7 @@ let renderer = {
             content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
           />
           <title>directory ${title}</title>
-          ${css}
+          ${style}
         </head>
         <body class="directory">
           ${nav}
@@ -117,7 +116,7 @@ let renderer = {
 
 main()
 
-async function main() {
+function main() {
   let port = args['--port'] || args['-p'] || 9900
 
   let options = {
@@ -136,7 +135,7 @@ async function main() {
     options.publicPath = publicPath
   }
 
-  let handleRequest = await static(options)
+  let handleRequest = static(options)
 
   http.createServer(handleRequest).listen({ port }, () => {
     let url = `http://localhost:${port}`
@@ -147,12 +146,10 @@ async function main() {
   })
 }
 
-async function static(options) {
+function static(options) {
   let { vd, publicPath } = options
 
   let finalRenderer = options.renderer || renderer
-
-  let css = await createStyleSheet()
 
   return async (req, res) => {
     // 1 url-resolver req.url -> { pathname }
@@ -195,7 +192,7 @@ async function static(options) {
     
     // 4.2 show directory or not-found or error
     if (data.type === FileType.DIRECTORY || data.type === FileType.NOT_FOUND || isError) {
-      let html = finalRenderer.render(data, { css, isError })
+      let html = finalRenderer.render(data)
 
       if (isError) {
         res.statusCode = 500
@@ -504,19 +501,6 @@ function openBrowser(url) {
     command = 'start'
   }
   exec(`${command} ${url}`)
-}
-
-async function createStyleSheet() {
-  return (await Promise.all(
-    ['style.css', 'icon.css'].map(async value => {
-      return await readFile(
-        path.join(__dirname, '..', 'public/assets/' + value),
-        'utf8'
-      )
-    })
-  )).map(content => {
-    return `<style>${content}</style>`
-  }).join('')
 }
 
 function getCommandArgs() {
