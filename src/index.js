@@ -185,7 +185,10 @@ async function static(options) {
       let contentType = mime.contentType(ext)
 
       res.setHeader('Content-Type', contentType)
-      res.end(data.content)
+      
+      let stream = fs.createReadStream(data.filename)
+
+      stream.pipe(res)
     }
 
     let isError = FileType.ERROR === data.type
@@ -250,9 +253,7 @@ let reader = {
     let data = { filename }
 
     try {
-      if (isFile) {
-        data.content = await readFile(filename)
-      } else if (isDirectory) {
+      if (isDirectory) {
         data.files = await reader.readDirectory(filename)
       }
   
