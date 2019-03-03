@@ -9,7 +9,16 @@ let querystring = require('querystring')
 let exec = require('child_process').exec
 let promisify = require('util').promisify
 let mime = require('mime-types')
+let pkg = require('../package')
 let style = require('./style')
+
+let argvList = process.argv
+
+// 打印当前版本
+if (['--version', '-v'].includes(argvList[2]) && pkg.version) {
+  console.log(pkg.version)
+  process.exit()
+}
 
 // 获取命令行输入参数
 let args = getCommandArgs()
@@ -504,15 +513,14 @@ function openBrowser(url) {
 }
 
 function getCommandArgs() {
-  let args1 = process.argv.reduce((acc, cur, idx, src) => {
+  let args1 = argvList.reduce((acc, cur, idx, src) => {
     if (cur.startsWith('-')) {
       acc[cur] = src[idx + 1]
     }
     return acc
   }, {})
 
-  let args2 = process.argv
-    .filter(_ => _.startsWith('--'))
+  let args2 = argvList.filter(_ => _.startsWith('--'))
     .reduce((acc, cur) => {
       let [key, value] = cur.split('=')
       acc[key] = value
