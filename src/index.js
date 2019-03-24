@@ -460,8 +460,8 @@ function createPathList(pathname, { isVdActived, vd }) {
     .split('/')
     .filter(Boolean)
     .map(_ => '/' + _)
-    .map(mapValue)
     // { name, href }
+    .map(mapValue)
     .map(item => {
       let { href } = item
 
