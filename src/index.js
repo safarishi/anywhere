@@ -469,7 +469,7 @@ function createPathList(pathname, { isVdActived, vd }) {
 
       let nextHref = isVdActived ? path.join(vd, href) : relativePath
 
-      if (!isVdActived & relativePath.startsWith(vd)) {
+      if (!isVdActived && relativePath.startsWith(vd)) {
         nextHref += '?disable_vd=1'
       }
 
