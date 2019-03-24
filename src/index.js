@@ -187,7 +187,7 @@ function static(options) {
     // 2 fs-reader pathname -> result
     let result = await reader.read(pathname, { rootPath })
 
-    // 3 transformer result -> renderableData
+    // 3 transformer result -> renderableData, just name data
     let data = transformer.transform(result, {
       pathname,
       isVdActived,
@@ -210,7 +210,7 @@ function static(options) {
 
     let isError = FileType.ERROR === data.type
     
-    // 4.2 show directory or not-found or error
+    // 4.2 show directory / not-found / error
     if (data.type === FileType.DIRECTORY || data.type === FileType.NOT_FOUND || isError) {
       let html = finalRenderer.render(data)
 
