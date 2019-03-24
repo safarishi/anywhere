@@ -17,6 +17,8 @@ let argvList = process.argv
 // 打印当前版本
 if (['--version', '-v'].includes(argvList[2]) && pkg.version) {
   console.log(pkg.version)
+
+  // 退出node进程
   process.exit()
 }
 
@@ -167,7 +169,7 @@ function static(options) {
       vd
     )
 
-    var rootPath = path.join(cwd, publicPath)
+    let rootPath = path.join(cwd, publicPath)
 
     if (disablePublicPath) {
       rootPath = cwd
@@ -492,9 +494,11 @@ function createPathList(pathname, { isVdActived, vd }) {
 
 function mapValue(value, index, array) {
   let href = value
+
   for (let i = index - 1; i >= 0; i--) {
     href = array[i] + href
   }
+
   return { href, name: value.slice(1) }
 }
 
@@ -503,12 +507,15 @@ function mapValue(value, index, array) {
  */
 function openBrowser(url) {
   let command = 'open'
+
   let osType = os.type()
+
   if (osType === 'Linux') {
     command = 'x-www-browser'
   } else if (osType === 'Windows_NT') {
     command = 'start'
   }
+
   exec(`${command} ${url}`)
 }
 
@@ -517,13 +524,16 @@ function getCommandArgs() {
     if (cur.startsWith('-')) {
       acc[cur] = src[idx + 1]
     }
+
     return acc
   }, {})
 
   let args2 = argvList.filter(_ => _.startsWith('--'))
     .reduce((acc, cur) => {
       let [key, value] = cur.split('=')
+
       acc[key] = value
+
       return acc
     }, {})
 
