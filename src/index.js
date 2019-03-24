@@ -8,7 +8,9 @@ let path = require('path')
 let querystring = require('querystring')
 let exec = require('child_process').exec
 let promisify = require('util').promisify
+
 let mime = require('mime-types')
+
 let pkg = require('../package')
 let style = require('./style')
 
@@ -152,6 +154,13 @@ function main() {
     let url = `http://localhost:${port}`
 
     console.log('Server is running at ' + url)
+
+    let argsKeys = Object.keys(args)
+
+    if (argsKeys.includes('-s') || argsKeys.includes(('--s'))) {
+      // don't open browser
+      return
+    }
 
     openBrowser(url)
   })
