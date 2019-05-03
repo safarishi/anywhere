@@ -435,18 +435,12 @@ function prepareDirectoryData(files, { pathname, vd, isVdActived, rootPath }) {
 function addClassNameProp(obj) {
   let clzName = 'icon'
 
-  let { filename, isFile, isDirectory } = obj
+  let { isFile, isDirectory } = obj
 
   if (isDirectory) {
     clzName += ' icon-directory'
   } else if (isFile) {
-    let contentType = mime.lookup(filename)
-
-    if (contentType) {
-      clzName += ' icon-' + contentType.replace(/[/|.]/g, '-')
-    } else {
-      clzName += ' icon-default'
-    }
+    clzName += ' icon-file'
   }
 
   return {
