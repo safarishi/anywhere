@@ -1,16 +1,20 @@
 {
   "name": "my-anywhere",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "NodeJs static file server",
   "main": "src/index.js",
   "bin": {
     "my-anywhere": "./src/index.js"
   },
   "scripts": {
-    "start": "node src/index.js",
+    "start": "src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["NodeJS", "server", "file"],
+  "keywords": [
+    "NodeJS",
+    "server",
+    "file"
+  ],
   "author": "safarishi",
   "license": "MIT",
   "repository": {
@@ -20,5 +24,10 @@
   "homepage": "https://github.com/safarishi/anywhere",
   "dependencies": {
     "mime-types": "^2.1.22"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.4",
+    "@babel/plugin-transform-modules-commonjs": "^7.4.4",
+    "@babel/register": "^7.4.4"
   }
 }
