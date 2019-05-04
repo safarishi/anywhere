@@ -1,6 +1,6 @@
 {
   "name": "my-anywhere",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "NodeJs static file server",
   "main": "src/index.js",
   "bin": {
@@ -27,9 +27,5 @@
     "@babel/plugin-transform-modules-commonjs": "^7.4.4",
     "@babel/register": "^7.4.4",
     "mime-types": "^2.1.22"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.4.4",
-    "@babel/register": "^7.4.4"
   }
 }
