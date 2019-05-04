@@ -4,9 +4,7 @@ require('@babel/register')({
   plugins: [
     '@babel/plugin-transform-modules-commonjs'
   ],
-  only: [
-    /\/src\/entry\.js$/
-  ]
+  ignore: []
 })
 
 require('./entry')
