@@ -200,9 +200,7 @@ function staticServer(options) {
 
       res.setHeader('Content-Type', contentType)
 
-      let stream = fs.createReadStream(data.filename)
-
-      stream.pipe(res)
+      fs.createReadStream(data.filename).pipe(res)
     }
 
     let isError = FileType.ERROR === data.type
