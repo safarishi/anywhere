@@ -144,6 +144,9 @@ type Options = {
 }
 
 function main() {
+  /**
+   * Server 监听的端口
+   */
   let port = args['--port'] || args['-p'] || 9900
 
   let options: Options = {
@@ -202,7 +205,7 @@ function staticServer(options: Options) {
     // 2 fs-reader pathname -> result
     let result = await reader.read(pathname, { rootPath })
 
-    // 3 transformer result -> renderableData, just name data
+    // 3 transformer result -> renderableData
     let data = transformer.transform(result, {
       pathname,
       isVdActived,
@@ -402,16 +405,14 @@ let transformer: Transformer = {
         filename: data.filename,
         content: data.content,
       }
-    }
+    } else {
+      // type === FileType.ERROR
 
-    if (type === FileType.ERROR) {
       return {
         type,
         content: data.content,
       }
     }
-
-    return {}
   },
 
   transformDirectory: ({
