@@ -1,5 +1,9 @@
 "use strict";
-let iconStyle = require('./icon');
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const icon_1 = __importDefault(require("./icon"));
 let mainStyle = `
 * {
   margin: 0;
@@ -263,9 +267,9 @@ ul#files.view-details li.header {
   }
 }
 `;
-module.exports = `
+exports.default = `
   <style>
     ${mainStyle}
-    ${iconStyle}
+    ${icon_1.default}
   </style>
 `;

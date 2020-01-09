@@ -1,4 +1,4 @@
-let iconStyle = require('./icon')
+import iconStyle from './icon'
 
 let mainStyle = `
 * {
@@ -263,7 +263,8 @@ ul#files.view-details li.header {
   }
 }
 `
-module.exports = `
+
+export default `
   <style>
     ${mainStyle}
     ${iconStyle}

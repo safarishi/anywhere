@@ -7,8 +7,9 @@ import querystring from 'querystring'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import mime from 'mime-types'
-import pkg from '../package.json'
 import style from './style'
+
+let pkg = require('../package.json')
 
 let argvList = process.argv
 
@@ -214,6 +215,8 @@ function staticServer(options: Options) {
       res.setHeader('Content-Type', contentType as string)
 
       fs.createReadStream(data.filename).pipe(res)
+
+      return
     }
 
     let isError = FileType.ERROR === data.type

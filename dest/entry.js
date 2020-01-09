@@ -21,12 +21,12 @@ const querystring_1 = __importDefault(require("querystring"));
 const child_process_1 = require("child_process");
 const util_1 = require("util");
 const mime_types_1 = __importDefault(require("mime-types"));
-const package_1 = __importDefault(require("../package"));
 const style_1 = __importDefault(require("./style"));
+let pkg = require('../package.json');
 let argvList = process.argv;
 // 打印当前版本
-if (['--version', '-v'].includes(argvList[2]) && package_1.default.version) {
-    console.log(package_1.default.version);
+if (['--version', '-v'].includes(argvList[2]) && pkg.version) {
+    console.log(pkg.version);
     // 退出node进程
     process.exit();
 }
@@ -151,7 +151,9 @@ function staticServer(options) {
     let finalRenderer = options.renderer || renderer;
     return (req, res) => __awaiter(this, void 0, void 0, function* () {
         // 1 url-resolver req.url -> { pathname }
-        let { pathname, isVdActived, disablePublicPath } = resolver.resolve(req.url, vd);
+        let { pathname, isVdActived, disablePublicPath } = resolver.resolve(
+        // @ts-ignore
+        req.url, vd);
         let rootPath = path_1.default.join(cwd, publicPath);
         if (disablePublicPath) {
             rootPath = cwd;
@@ -171,6 +173,7 @@ function staticServer(options) {
             let contentType = mime_types_1.default.contentType(ext);
             res.setHeader('Content-Type', contentType);
             fs_1.default.createReadStream(data.filename).pipe(res);
+            return;
         }
         let isError = FileType.ERROR === data.type;
         // 4.2 show directory / not-found / error
@@ -179,7 +182,7 @@ function staticServer(options) {
             if (isError) {
                 res.statusCode = 500;
             }
-            res.setHeader('Content-Type', mime_types_1.default.contentType('.html'));
+            res.setHeader('Content-Type', mime_types_1.default.contentType('.html') || '');
             res.end(html);
         }
     });
@@ -196,6 +199,7 @@ let resolver = {
         if (isVdActived) {
             pathname = pathname.replace(vd, '');
         }
+        // @ts-ignore
         disablePublicPath = disablePublicPath === '1';
         return { pathname, isVdActived, disablePublicPath };
     }
@@ -216,6 +220,7 @@ let reader = {
         let data = { filename };
         try {
             if (isDirectory) {
+                // @ts-ignore
                 data.files = yield reader.readDirectory(filename);
             }
             return {
@@ -234,6 +239,7 @@ let reader = {
     }),
     readDirectory: (filename) => __awaiter(void 0, void 0, void 0, function* () {
         let files = yield readdir(filename);
+        // @ts-ignore
         files = yield Promise.all(files.map((file) => __awaiter(void 0, void 0, void 0, function* () {
             let { isFile, isDirectory } = yield getFileInfo(path_1.default.join(filename, file));
             return {
