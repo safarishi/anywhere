@@ -7,7 +7,7 @@
     "my-anywhere": "./dest/index.js"
   },
   "scripts": {
-    "start": "dest/index.js",
+    "start": "./dest/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "TypeScript:watch": "tsc --w --outDir ./dest",
     "build": "rm -rf dest/ && tsc --outDir ./dest"
