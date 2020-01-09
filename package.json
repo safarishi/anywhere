@@ -25,9 +25,6 @@
   },
   "homepage": "https://github.com/safarishi/anywhere",
   "dependencies": {
-    "@babel/core": "^7.4.4",
-    "@babel/plugin-transform-modules-commonjs": "^7.4.4",
-    "@babel/register": "^7.4.4",
     "mime-types": "^2.1.22",
     "typescript": "^3.7.4"
   }
