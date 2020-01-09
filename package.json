@@ -1,14 +1,17 @@
 {
   "name": "my-anywhere",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "NodeJs static file server",
   "main": "src/index.js",
   "bin": {
-    "my-anywhere": "./src/index.js"
+    "my-anywhere": "./dest/index.js"
   },
   "scripts": {
-    "start": "src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "./dest/index.js",
+    "eslint": "eslint",
+    "lint": "eslint ./src --quiet --cache --ext .ts,.tsx,.js",
+    "TypeScript:watch": "tsc --w --outDir ./dest",
+    "build": "rm -rf dest/ && tsc --outDir ./dest"
   },
   "keywords": [
     "NodeJS",
@@ -23,9 +26,16 @@
   },
   "homepage": "https://github.com/safarishi/anywhere",
   "dependencies": {
-    "@babel/core": "^7.4.4",
-    "@babel/plugin-transform-modules-commonjs": "^7.4.4",
-    "@babel/register": "^7.4.4",
+    "@types/mime-types": "^2.1.0",
     "mime-types": "^2.1.22"
+  },
+  "devDependencies": {
+    "@types/node": "^13.1.5",
+    "@typescript-eslint/eslint-plugin": "^2.15.0",
+    "@typescript-eslint/parser": "^2.15.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.19.1",
+    "typescript": "^3.7.4"
   }
 }
