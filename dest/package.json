@@ -1,0 +1,35 @@
+{
+    "name": "my-anywhere",
+    "version": "1.2.7",
+    "description": "NodeJs static file server",
+    "main": "src/index.js",
+    "bin": {
+        "my-anywhere": "./dest/index.js"
+    },
+    "scripts": {
+        "start": "./dest/index.js",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "TypeScript:watch": "tsc --w --outDir ./dest",
+        "build": "rm -rf dest/ && tsc --outDir ./dest"
+    },
+    "keywords": [
+        "NodeJS",
+        "server",
+        "file"
+    ],
+    "author": "safarishi",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/safarishi/anywhere.git"
+    },
+    "homepage": "https://github.com/safarishi/anywhere",
+    "dependencies": {
+        "@types/mime-types": "^2.1.0",
+        "mime-types": "^2.1.22"
+    },
+    "devDependencies": {
+        "typescript": "^3.7.4",
+        "@types/node": "^13.1.5"
+    }
+}

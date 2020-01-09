@@ -1,13 +1,13 @@
 import fs from 'fs'
 import os from 'os'
 import url from 'url'
-import http from 'http'
+import http, { IncomingMessage, ServerResponse } from 'http'
 import path from 'path'
 import querystring from 'querystring'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import mime from 'mime-types'
-import pkg from '../package'
+import pkg from '../package.json'
 import style from './style'
 
 let argvList = process.argv
@@ -39,8 +39,14 @@ let exists = promisify(fs.exists)
 let readdir = promisify(fs.readdir)
 let realpath = promisify(fs.realpath)
 
-let renderer = {
-  render: (data = {}) => {
+interface Renderer {
+  render: any
+  renderDirectory: any
+  renderToHtml: any
+}
+
+let renderer: Renderer = {
+  render: (data: any = {}) => {
     let { type, fileMapList, pathList, content } = data
 
     if (type === FileType.DIRECTORY) {
@@ -54,7 +60,7 @@ let renderer = {
     return content
   },
 
-  renderDirectory: ({ pathList = [], fileMapList = [] }) => {
+  renderDirectory: ({ pathList = [], fileMapList = [] }: { pathList: any[], fileMapList: any[] }) => {
     if (!pathList.length && !fileMapList.length) {
       return renderer.renderToHtml()
     }
@@ -69,7 +75,7 @@ let renderer = {
       nav = `
         <h1>
           ${pathList
-            .map(({ name, href }) => {
+            .map(({ name, href }: { name: string, href: string }) => {
               return ` <a href="${href}">${name}</a> /`
             })
             .join('')}
@@ -81,7 +87,7 @@ let renderer = {
       content = `
         <ul id="files">
           ${fileMapList
-            .map(({ name, href, clzName }) => {
+            .map(({ name, href, clzName }: { name: string, href: string, clzName: string }) => {
               return `
               <li>
                 <a class="${clzName}" href="${href}">
@@ -102,7 +108,7 @@ let renderer = {
     })
   },
 
-  renderToHtml: ({ title = '', nav = '', content = '' } = {}) => {
+  renderToHtml: ({ title = '', nav = '', content = '' }: any = {}) => {
     return `
       <html>
         <head>
@@ -126,10 +132,16 @@ let renderer = {
 
 main()
 
+type Options = {
+  publicPath: string,
+  vd?: string,
+  renderer?: any,
+}
+
 function main() {
   let port = args['--port'] || args['-p'] || 9900
 
-  let options = {
+  let options: Options = {
     publicPath: '/'
   }
 
@@ -163,14 +175,15 @@ function main() {
   })
 }
 
-function staticServer(options) {
+function staticServer(options: Options) {
   let { vd, publicPath } = options
 
   let finalRenderer = options.renderer || renderer
 
-  return async (req, res) => {
+  return async (req: IncomingMessage, res: ServerResponse) => {
     // 1 url-resolver req.url -> { pathname }
     let { pathname, isVdActived, disablePublicPath } = resolver.resolve(
+      // @ts-ignore
       req.url,
       vd
     )
@@ -198,7 +211,7 @@ function staticServer(options) {
 
       let contentType = mime.contentType(ext)
 
-      res.setHeader('Content-Type', contentType)
+      res.setHeader('Content-Type', contentType as string)
 
       fs.createReadStream(data.filename).pipe(res)
     }
@@ -213,24 +226,24 @@ function staticServer(options) {
         res.statusCode = 500
       }
 
-      res.setHeader('Content-Type', mime.contentType('.html'))
+      res.setHeader('Content-Type', mime.contentType('.html') as string || '')
       res.end(html)
     }
   }
 }
 
 let resolver = {
-  resolve: (requestUrl, vd) => {
+  resolve: (requestUrl: string, vd: string) => {
     let { pathname, query } = url.parse(requestUrl)
 
-    pathname = decodeURIComponent(pathname)
+    pathname = decodeURIComponent(pathname as string)
 
     let isVdActived = requestUrl.startsWith(vd)
 
     let {
       disable_vd: disableVd,
       disable_public_path: disablePublicPath
-    } = querystring.parse(query)
+    } = querystring.parse(query as string)
 
     if (disableVd === '1') {
       isVdActived = false
@@ -240,13 +253,20 @@ let resolver = {
       pathname = pathname.replace(vd, '')
     }
 
+    // @ts-ignore
     disablePublicPath = disablePublicPath === '1'
 
     return { pathname, isVdActived, disablePublicPath }
   }
 }
 
-let reader = {
+interface Reader {
+  read: (pathname: string, options: { rootPath: string }) => any
+
+  readDirectory: (filename: string) => Promise<any[]>
+}
+
+let reader: Reader = {
   /**
    * @return {object}
    * { type: '404|file|directory|error', data: { filename, content, files } }
@@ -266,6 +286,7 @@ let reader = {
 
     try {
       if (isDirectory) {
+        // @ts-ignore
         data.files = await reader.readDirectory(filename)
       }
 
@@ -286,6 +307,7 @@ let reader = {
   readDirectory: async filename => {
     let files = await readdir(filename)
 
+    // @ts-ignore
     files = await Promise.all(
       files.map(async file => {
         let { isFile, isDirectory } = await getFileInfo(
@@ -304,7 +326,7 @@ let reader = {
   }
 }
 
-async function readFileInfo(filename) {
+async function readFileInfo(filename: string) {
   let isExist = await exists(filename)
 
   if (!isExist) return { isExist }
@@ -314,7 +336,7 @@ async function readFileInfo(filename) {
   return { isFile, isDirectory }
 }
 
-async function getFileInfo(filename) {
+async function getFileInfo(filename: string): Promise<{ isFile: boolean, isDirectory: boolean }> {
   let stat = await lstat(filename)
 
   let isFile = stat.isFile()
@@ -333,7 +355,21 @@ async function getFileInfo(filename) {
   }
 }
 
-let transformer = {
+interface Transformer {
+  transform: (
+    result: any,
+    options: {
+      pathname: string,
+      isVdActived: boolean,
+      rootPath: string,
+      vd?: string
+    }
+  ) => any
+
+  transformDirectory: (options: any) => any
+}
+
+let transformer: Transformer = {
   transform: (result, { pathname, isVdActived, vd, rootPath }) => {
     let { type, data = {} } = result
 
@@ -391,7 +427,7 @@ let transformer = {
   }
 }
 
-function prepareDirectoryData(files, { pathname, vd, isVdActived, rootPath }) {
+function prepareDirectoryData(files: any[], { pathname, vd, isVdActived, rootPath }: { pathname: string, vd: string, isVdActived: boolean, rootPath: string }) {
   if (pathname !== '/' && pathname !== '') {
     files = [{ name: '..', isDirectory: true, isFile: false }, ...files]
   }
@@ -427,7 +463,7 @@ function prepareDirectoryData(files, { pathname, vd, isVdActived, rootPath }) {
   }
 }
 
-function addClassNameProp(obj) {
+function addClassNameProp(obj: any) {
   let clzName = 'icon'
 
   let { isFile, isDirectory } = obj
@@ -444,7 +480,7 @@ function addClassNameProp(obj) {
   }
 }
 
-function createPathList(pathname, { isVdActived, vd }) {
+function createPathList(pathname: string, { isVdActived, vd }: { isVdActived: boolean, vd: string }) {
   let pathList = pathname
     .split('/')
     .filter(Boolean)
@@ -490,7 +526,7 @@ function createPathList(pathname, { isVdActived, vd }) {
   return pathList
 }
 
-function mapValue(value, index, array) {
+function mapValue(value: any, index: number, array: any[]) {
   let href = value
 
   for (let i = index - 1; i >= 0; i--) {
@@ -503,7 +539,7 @@ function mapValue(value, index, array) {
 /**
  * 打开默认浏览器
  */
-function openBrowser(url) {
+function openBrowser(url: string) {
   let command = 'open'
 
   let osType = os.type()
@@ -524,7 +560,7 @@ function getCommandArgs() {
     }
 
     return acc
-  }, {})
+  }, {} as Record<string, string>)
 
   let args2 = argvList.filter(_ => _.startsWith('--'))
     .reduce((acc, cur) => {
@@ -533,7 +569,7 @@ function getCommandArgs() {
       acc[key] = value
 
       return acc
-    }, {})
+    }, {} as Record<string, string>)
 
   let args = { ...args1, ...args2 }
 

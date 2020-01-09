@@ -25,7 +25,11 @@
   },
   "homepage": "https://github.com/safarishi/anywhere",
   "dependencies": {
-    "mime-types": "^2.1.22",
-    "typescript": "^3.7.4"
+    "@types/mime-types": "^2.1.0",
+    "mime-types": "^2.1.22"
+  },
+  "devDependencies": {
+    "typescript": "^3.7.4",
+    "@types/node": "^13.1.5"
   }
 }
