@@ -152,7 +152,7 @@ function main() {
     options.vd = virtualDirectory
   }
 
-  let publicPath = args['--public-path'] || args['-publicPath'] || args['-d']
+  let publicPath = args['--public-path'] || args['-publicPath']
 
   if (publicPath) {
     options.publicPath = publicPath
@@ -230,6 +230,7 @@ function staticServer(options: Options) {
       }
 
       res.setHeader('Content-Type', mime.contentType('.html') as string || '')
+
       res.end(html)
     }
   }
@@ -556,6 +557,8 @@ function openBrowser(url: string) {
   exec(`${command} ${url}`)
 }
 
+type Args = Record<string, string>
+
 function getCommandArgs() {
   let args1 = argvList.reduce((acc, cur, idx, src) => {
     if (cur.startsWith('-')) {
@@ -563,7 +566,7 @@ function getCommandArgs() {
     }
 
     return acc
-  }, {} as Record<string, string>)
+  }, {} as Args)
 
   let args2 = argvList.filter(_ => _.startsWith('--'))
     .reduce((acc, cur) => {
@@ -572,7 +575,7 @@ function getCommandArgs() {
       acc[key] = value
 
       return acc
-    }, {} as Record<string, string>)
+    }, {} as Args)
 
   let args = { ...args1, ...args2 }
 

@@ -130,7 +130,7 @@ function main() {
     if (virtualDirectory) {
         options.vd = virtualDirectory;
     }
-    let publicPath = args['--public-path'] || args['-publicPath'] || args['-d'];
+    let publicPath = args['--public-path'] || args['-publicPath'];
     if (publicPath) {
         options.publicPath = publicPath;
     }
