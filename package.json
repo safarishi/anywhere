@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "./dest/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "eslint": "eslint",
+    "lint": "eslint ./src --quiet --cache --ext .ts,.tsx,.js",
     "TypeScript:watch": "tsc --w --outDir ./dest",
     "build": "rm -rf dest/ && tsc --outDir ./dest"
   },
@@ -29,7 +30,12 @@
     "mime-types": "^2.1.22"
   },
   "devDependencies": {
-    "typescript": "^3.7.4",
-    "@types/node": "^13.1.5"
+    "@types/node": "^13.1.5",
+    "@typescript-eslint/eslint-plugin": "^2.15.0",
+    "@typescript-eslint/parser": "^2.15.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.19.1",
+    "typescript": "^3.7.4"
   }
 }

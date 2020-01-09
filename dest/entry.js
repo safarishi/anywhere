@@ -38,7 +38,7 @@ let FileType = {
     NOT_FOUND: '404',
     DIRECTORY: 'directory',
     // 读取文件发生错误
-    ERROR: 'error'
+    ERROR: 'error',
 };
 let cwd = process.cwd();
 let lstat = util_1.promisify(fs_1.default.lstat);
@@ -52,7 +52,7 @@ let renderer = {
             let html = renderer.renderDirectory({ fileMapList, pathList });
             return html;
         }
-        else if (type === FileType.NOT_FOUND) {
+        if (type === FileType.NOT_FOUND) {
             return 'Page 404';
         }
         return content;
@@ -82,12 +82,12 @@ let renderer = {
           ${fileMapList
                 .map(({ name, href, clzName }) => {
                 return `
-              <li>
-                <a class="${clzName}" href="${href}">
-                  <span class="name">${name}</span>
-                </a>
-              </li>
-            `;
+                <li>
+                  <a class="${clzName}" href="${href}">
+                    <span class="name">${name}</span>
+                  </a>
+                </li>
+              `;
             })
                 .join('')}
         </ul>
@@ -96,7 +96,7 @@ let renderer = {
         return renderer.renderToHtml({
             title,
             nav,
-            content
+            content,
         });
     },
     renderToHtml: ({ title = '', nav = '', content = '' } = {}) => {
@@ -118,13 +118,13 @@ let renderer = {
         </body>
       </html>
     `;
-    }
+    },
 };
 main();
 function main() {
     let port = args['--port'] || args['-p'] || 9900;
     let options = {
-        publicPath: '/'
+        publicPath: '/',
     };
     let virtualDirectory = args['--vd'] || args['-vd'];
     if (virtualDirectory) {
@@ -136,14 +136,14 @@ function main() {
     }
     let handleRequest = staticServer(options);
     http_1.default.createServer(handleRequest).listen({ port }, () => {
-        let url = `http://localhost:${port}`;
-        console.log('Server is running at ' + url);
+        let serverAddress = `http://localhost:${port}`;
+        console.log('Server is running at ' + serverAddress);
         let argsKeys = Object.keys(args);
         if (argsKeys.includes('-s') || argsKeys.includes(('--s'))) {
             // don't open browser
             return;
         }
-        openBrowser(url);
+        openBrowser(serverAddress);
     });
 }
 function staticServer(options) {
@@ -165,7 +165,7 @@ function staticServer(options) {
             pathname,
             isVdActived,
             vd,
-            rootPath
+            rootPath,
         });
         // 4.1 send static file
         if (data.type === FileType.FILE) {
@@ -192,7 +192,7 @@ let resolver = {
         let { pathname, query } = url_1.default.parse(requestUrl);
         pathname = decodeURIComponent(pathname);
         let isVdActived = requestUrl.startsWith(vd);
-        let { disable_vd: disableVd, disable_public_path: disablePublicPath } = querystring_1.default.parse(query);
+        let { disable_vd: disableVd, disable_public_path: disablePublicPath, } = querystring_1.default.parse(query);
         if (disableVd === '1') {
             isVdActived = false;
         }
@@ -202,7 +202,7 @@ let resolver = {
         // @ts-ignore
         disablePublicPath = disablePublicPath === '1';
         return { pathname, isVdActived, disablePublicPath };
-    }
+    },
 };
 let reader = {
     /**
@@ -225,15 +225,15 @@ let reader = {
             }
             return {
                 type,
-                data
+                data,
             };
         }
         catch (error) {
             return {
                 type: FileType.ERROR,
                 data: {
-                    content: error.message
-                }
+                    content: error.message,
+                },
             };
         }
     }),
@@ -245,11 +245,11 @@ let reader = {
             return {
                 name: file,
                 isFile,
-                isDirectory
+                isDirectory,
             };
         })));
         return files;
-    })
+    }),
 };
 function readFileInfo(filename) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -272,7 +272,7 @@ function getFileInfo(filename) {
         }
         return {
             isFile,
-            isDirectory
+            isDirectory,
         };
     });
 }
@@ -289,43 +289,44 @@ let transformer = {
                 isVdActived,
                 pathname,
                 type,
-                rootPath
+                rootPath,
             });
         }
         if (type === FileType.FILE) {
             return {
                 type,
                 filename: data.filename,
-                content: data.content
+                content: data.content,
             };
         }
         if (type === FileType.ERROR) {
             return {
                 type,
-                content: data.content
+                content: data.content,
             };
         }
+        return {};
     },
-    transformDirectory: ({ files, vd, isVdActived, type, pathname, rootPath }) => {
+    transformDirectory: ({ files, vd, isVdActived, type, pathname, rootPath, }) => {
         let { fileMapList, pathList } = prepareDirectoryData(files, {
             pathname,
             isVdActived,
             vd,
-            rootPath
+            rootPath,
         });
         return {
             type,
             pathList,
-            fileMapList
+            fileMapList,
         };
-    }
+    },
 };
-function prepareDirectoryData(files, { pathname, vd, isVdActived, rootPath }) {
+function prepareDirectoryData(files, { pathname, vd, isVdActived, rootPath, }) {
     if (pathname !== '/' && pathname !== '') {
         files = [{ name: '..', isDirectory: true, isFile: false }, ...files];
     }
     let fileMapList = files
-        .map(item => {
+        .map((item) => {
         let { name } = item;
         let relativePath = path_1.default.join(pathname, name);
         let href = isVdActived ? path_1.default.join(vd, relativePath) : relativePath;
@@ -341,7 +342,7 @@ function prepareDirectoryData(files, { pathname, vd, isVdActived, rootPath }) {
     let pathList = createPathList(pathname, { vd, isVdActived });
     return {
         fileMapList,
-        pathList
+        pathList,
     };
 }
 function addClassNameProp(obj) {
@@ -359,10 +360,10 @@ function createPathList(pathname, { isVdActived, vd }) {
     let pathList = pathname
         .split('/')
         .filter(Boolean)
-        .map(_ => '/' + _)
+        .map((_) => '/' + _)
         // { name, href }
         .map(mapValue)
-        .map(item => {
+        .map((item) => {
         let { href } = item;
         let relativePath = href;
         let nextHref = isVdActived ? path_1.default.join(vd, href) : relativePath;
@@ -375,11 +376,11 @@ function createPathList(pathname, { isVdActived, vd }) {
     pathList.unshift({
         name: '~',
         relativePath: '/',
-        href: isVdActived ? path_1.default.join(vd, '/') : '/'
+        href: isVdActived ? path_1.default.join(vd, '/') : '/',
     });
     pathList = pathList.map((item, index, array) => {
         if (index === array.length - 1) {
-            return Object.assign(Object.assign({}, item), { href: 'javascript:;' });
+            return Object.assign({}, item);
         }
         return item;
     });
@@ -395,7 +396,7 @@ function mapValue(value, index, array) {
 /**
  * 打开默认浏览器
  */
-function openBrowser(url) {
+function openBrowser(href) {
     let command = 'open';
     let osType = os_1.default.type();
     if (osType === 'Linux') {
@@ -404,7 +405,7 @@ function openBrowser(url) {
     else if (osType === 'Windows_NT') {
         command = 'start';
     }
-    child_process_1.exec(`${command} ${url}`);
+    child_process_1.exec(`${command} ${href}`);
 }
 function getCommandArgs() {
     let args1 = argvList.reduce((acc, cur, idx, src) => {
@@ -413,12 +414,11 @@ function getCommandArgs() {
         }
         return acc;
     }, {});
-    let args2 = argvList.filter(_ => _.startsWith('--'))
+    let args2 = argvList.filter((_) => _.startsWith('--'))
         .reduce((acc, cur) => {
         let [key, value] = cur.split('=');
         acc[key] = value;
         return acc;
     }, {});
-    let args = Object.assign(Object.assign({}, args1), args2);
-    return args;
+    return Object.assign(Object.assign({}, args1), args2);
 }

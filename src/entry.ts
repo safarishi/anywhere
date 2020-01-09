@@ -30,7 +30,7 @@ let FileType = {
   NOT_FOUND: '404',
   DIRECTORY: 'directory',
   // 读取文件发生错误
-  ERROR: 'error'
+  ERROR: 'error',
 }
 
 let cwd = process.cwd()
@@ -54,14 +54,18 @@ let renderer: Renderer = {
       let html = renderer.renderDirectory({ fileMapList, pathList })
 
       return html
-    } else if (type === FileType.NOT_FOUND) {
+    }
+
+    if (type === FileType.NOT_FOUND) {
       return 'Page 404'
     }
 
     return content
   },
 
-  renderDirectory: ({ pathList = [], fileMapList = [] }: { pathList: any[], fileMapList: any[] }) => {
+  renderDirectory: (
+    { pathList = [], fileMapList = [] }: { pathList: any[], fileMapList: any[] },
+  ) => {
     if (!pathList.length && !fileMapList.length) {
       return renderer.renderToHtml()
     }
@@ -90,12 +94,12 @@ let renderer: Renderer = {
           ${fileMapList
             .map(({ name, href, clzName }: { name: string, href: string, clzName: string }) => {
               return `
-              <li>
-                <a class="${clzName}" href="${href}">
-                  <span class="name">${name}</span>
-                </a>
-              </li>
-            `
+                <li>
+                  <a class="${clzName}" href="${href}">
+                    <span class="name">${name}</span>
+                  </a>
+                </li>
+              `
             })
             .join('')}
         </ul>
@@ -105,7 +109,7 @@ let renderer: Renderer = {
     return renderer.renderToHtml({
       title,
       nav,
-      content
+      content,
     })
   },
 
@@ -128,7 +132,7 @@ let renderer: Renderer = {
         </body>
       </html>
     `
-  }
+  },
 }
 
 main()
@@ -143,7 +147,7 @@ function main() {
   let port = args['--port'] || args['-p'] || 9900
 
   let options: Options = {
-    publicPath: '/'
+    publicPath: '/',
   }
 
   let virtualDirectory = args['--vd'] || args['-vd']
@@ -161,9 +165,9 @@ function main() {
   let handleRequest = staticServer(options)
 
   http.createServer(handleRequest).listen({ port }, () => {
-    let url = `http://localhost:${port}`
+    let serverAddress = `http://localhost:${port}`
 
-    console.log('Server is running at ' + url)
+    console.log('Server is running at ' + serverAddress)
 
     let argsKeys = Object.keys(args)
 
@@ -172,7 +176,7 @@ function main() {
       return
     }
 
-    openBrowser(url)
+    openBrowser(serverAddress)
   })
 }
 
@@ -186,7 +190,7 @@ function staticServer(options: Options) {
     let { pathname, isVdActived, disablePublicPath } = resolver.resolve(
       // @ts-ignore
       req.url,
-      vd
+      vd,
     )
 
     let rootPath = path.join(cwd, publicPath)
@@ -203,7 +207,7 @@ function staticServer(options: Options) {
       pathname,
       isVdActived,
       vd,
-      rootPath
+      rootPath,
     })
 
     // 4.1 send static file
@@ -246,7 +250,7 @@ let resolver = {
 
     let {
       disable_vd: disableVd,
-      disable_public_path: disablePublicPath
+      disable_public_path: disablePublicPath,
     } = querystring.parse(query as string)
 
     if (disableVd === '1') {
@@ -261,7 +265,7 @@ let resolver = {
     disablePublicPath = disablePublicPath === '1'
 
     return { pathname, isVdActived, disablePublicPath }
-  }
+  },
 }
 
 interface Reader {
@@ -296,38 +300,38 @@ let reader: Reader = {
 
       return {
         type,
-        data
+        data,
       }
     } catch (error) {
       return {
         type: FileType.ERROR,
         data: {
-          content: error.message
-        }
+          content: error.message,
+        },
       }
     }
   },
 
-  readDirectory: async filename => {
+  readDirectory: async (filename) => {
     let files = await readdir(filename)
 
     // @ts-ignore
     files = await Promise.all(
-      files.map(async file => {
+      files.map(async (file) => {
         let { isFile, isDirectory } = await getFileInfo(
-          path.join(filename, file)
+          path.join(filename, file),
         )
 
         return {
           name: file,
           isFile,
-          isDirectory
+          isDirectory,
         }
-      })
+      }),
     )
 
     return files
-  }
+  },
 }
 
 async function readFileInfo(filename: string) {
@@ -355,7 +359,7 @@ async function getFileInfo(filename: string): Promise<{ isFile: boolean, isDirec
 
   return {
     isFile,
-    isDirectory
+    isDirectory,
   }
 }
 
@@ -366,7 +370,7 @@ interface Transformer {
       pathname: string,
       isVdActived: boolean,
       rootPath: string,
-      vd?: string
+      vd?: string,
     }
   ) => any
 
@@ -388,7 +392,7 @@ let transformer: Transformer = {
         isVdActived,
         pathname,
         type,
-        rootPath
+        rootPath,
       })
     }
 
@@ -396,16 +400,18 @@ let transformer: Transformer = {
       return {
         type,
         filename: data.filename,
-        content: data.content
+        content: data.content,
       }
     }
 
     if (type === FileType.ERROR) {
       return {
         type,
-        content: data.content
+        content: data.content,
       }
     }
+
+    return {}
   },
 
   transformDirectory: ({
@@ -414,30 +420,38 @@ let transformer: Transformer = {
     isVdActived,
     type,
     pathname,
-    rootPath
+    rootPath,
   }) => {
     let { fileMapList, pathList } = prepareDirectoryData(files, {
       pathname,
       isVdActived,
       vd,
-      rootPath
+      rootPath,
     })
 
     return {
       type,
       pathList,
-      fileMapList
+      fileMapList,
     }
-  }
+  },
 }
 
-function prepareDirectoryData(files: any[], { pathname, vd, isVdActived, rootPath }: { pathname: string, vd: string, isVdActived: boolean, rootPath: string }) {
+function prepareDirectoryData(
+  files: any[],
+  {
+    pathname,
+    vd,
+    isVdActived,
+    rootPath,
+  }: { pathname: string, vd: string, isVdActived: boolean, rootPath: string },
+) {
   if (pathname !== '/' && pathname !== '') {
     files = [{ name: '..', isDirectory: true, isFile: false }, ...files]
   }
 
   let fileMapList = files
-    .map(item => {
+    .map((item) => {
       let { name } = item
 
       let relativePath = path.join(pathname, name)
@@ -454,7 +468,7 @@ function prepareDirectoryData(files: any[], { pathname, vd, isVdActived, rootPat
         ...item,
         relativePath,
         href,
-        filename
+        filename,
       }
     })
     .map(addClassNameProp)
@@ -463,7 +477,7 @@ function prepareDirectoryData(files: any[], { pathname, vd, isVdActived, rootPat
 
   return {
     fileMapList,
-    pathList
+    pathList,
   }
 }
 
@@ -480,18 +494,21 @@ function addClassNameProp(obj: any) {
 
   return {
     ...obj,
-    clzName
+    clzName,
   }
 }
 
-function createPathList(pathname: string, { isVdActived, vd }: { isVdActived: boolean, vd: string }) {
+function createPathList(
+  pathname: string,
+  { isVdActived, vd }: { isVdActived: boolean, vd: string },
+) {
   let pathList = pathname
     .split('/')
     .filter(Boolean)
-    .map(_ => '/' + _)
+    .map((_) => '/' + _)
     // { name, href }
     .map(mapValue)
-    .map(item => {
+    .map((item) => {
       let { href } = item
 
       let relativePath = href
@@ -505,7 +522,7 @@ function createPathList(pathname: string, { isVdActived, vd }: { isVdActived: bo
       return {
         ...item,
         relativePath,
-        href: nextHref
+        href: nextHref,
       }
     })
 
@@ -513,14 +530,13 @@ function createPathList(pathname: string, { isVdActived, vd }: { isVdActived: bo
   pathList.unshift({
     name: '~',
     relativePath: '/',
-    href: isVdActived ? path.join(vd, '/') : '/'
+    href: isVdActived ? path.join(vd, '/') : '/',
   })
 
   pathList = pathList.map((item, index, array) => {
     if (index === array.length - 1) {
       return {
         ...item,
-        href: 'javascript:;'
       }
     }
 
@@ -543,7 +559,7 @@ function mapValue(value: any, index: number, array: any[]) {
 /**
  * 打开默认浏览器
  */
-function openBrowser(url: string) {
+function openBrowser(href: string) {
   let command = 'open'
 
   let osType = os.type()
@@ -554,7 +570,7 @@ function openBrowser(url: string) {
     command = 'start'
   }
 
-  exec(`${command} ${url}`)
+  exec(`${command} ${href}`)
 }
 
 type Args = Record<string, string>
@@ -568,7 +584,7 @@ function getCommandArgs() {
     return acc
   }, {} as Args)
 
-  let args2 = argvList.filter(_ => _.startsWith('--'))
+  let args2 = argvList.filter((_) => _.startsWith('--'))
     .reduce((acc, cur) => {
       let [key, value] = cur.split('=')
 
@@ -577,7 +593,5 @@ function getCommandArgs() {
       return acc
     }, {} as Args)
 
-  let args = { ...args1, ...args2 }
-
-  return args
+  return { ...args1, ...args2 }
 }
