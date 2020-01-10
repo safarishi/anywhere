@@ -44,6 +44,7 @@ function main() {
     let port = args['--port'] || args['-p'] || 9900;
     let options = {
         publicPath: '/',
+        vd: '',
     };
     let virtualDirectory = args['--vd'] || args['-vd'];
     if (virtualDirectory) {
@@ -63,6 +64,9 @@ function main() {
             // don't open browser
             return;
         }
+        /**
+         * 打开默认浏览器
+         */
         helpers_1.openBrowser(serverAddress);
     });
 }
@@ -71,9 +75,7 @@ function staticServer(options) {
     let finalRenderer = options.renderer || renderer_1.default;
     return (req, res) => __awaiter(this, void 0, void 0, function* () {
         // 1 url-resolver req.url -> { pathname }
-        let { pathname, isVdActived, disablePublicPath } = resolver_1.default.resolve(
-        // @ts-ignore
-        req.url, vd);
+        let { pathname, isVdActived, disablePublicPath } = resolver_1.default.resolve(req.url || '', vd);
         let rootPath = path_1.default.join(cwd, publicPath);
         if (disablePublicPath) {
             rootPath = cwd;

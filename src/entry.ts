@@ -33,7 +33,7 @@ main()
 
 type Options = {
   publicPath: string,
-  vd?: string,
+  vd: string,
   renderer?: any,
 }
 
@@ -45,6 +45,7 @@ function main() {
 
   let options: Options = {
     publicPath: '/',
+    vd: '',
   }
 
   let virtualDirectory = args['--vd'] || args['-vd']
@@ -75,6 +76,9 @@ function main() {
       return
     }
 
+    /**
+     * 打开默认浏览器
+     */
     openBrowser(serverAddress)
   })
 }
@@ -87,8 +91,7 @@ function staticServer(options: Options) {
   return async (req: IncomingMessage, res: ServerResponse) => {
     // 1 url-resolver req.url -> { pathname }
     let { pathname, isVdActived, disablePublicPath } = resolver.resolve(
-      // @ts-ignore
-      req.url,
+      req.url || '',
       vd,
     )
 

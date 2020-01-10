@@ -5,14 +5,14 @@ let resolver = {
   resolve: (requestUrl: string, vd: string) => {
     let { pathname, query } = url.parse(requestUrl)
 
-    pathname = decodeURIComponent(pathname as string)
+    pathname = decodeURIComponent(pathname || '')
 
     let isVdActived = requestUrl.startsWith(vd)
 
     let {
       disable_vd: disableVd,
       disable_public_path: disablePublicPath,
-    } = querystring.parse(query as string)
+    } = querystring.parse(query || '')
 
     if (disableVd === '1') {
       isVdActived = false
@@ -22,10 +22,9 @@ let resolver = {
       pathname = pathname.replace(vd, '')
     }
 
-    // @ts-ignore
-    disablePublicPath = disablePublicPath === '1'
+    let isPublicPathDisabled = disablePublicPath === '1'
 
-    return { pathname, isVdActived, disablePublicPath }
+    return { pathname, isVdActived, disablePublicPath: isPublicPathDisabled }
   },
 }
 
