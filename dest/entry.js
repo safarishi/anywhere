@@ -75,9 +75,9 @@ function staticServer(options) {
     let finalRenderer = options.renderer || renderer_1.default;
     return (req, res) => __awaiter(this, void 0, void 0, function* () {
         // 1 url-resolver req.url -> { pathname }
-        let { pathname, isVdActived, disablePublicPath } = resolver_1.default.resolve(req.url || '', vd);
+        let { pathname, isVdActived, isPublicPathDisabled } = resolver_1.default.resolve(req.url || '', vd);
         let rootPath = path_1.default.join(cwd, publicPath);
-        if (disablePublicPath) {
+        if (isPublicPathDisabled) {
             rootPath = cwd;
         }
         // 2 fs-reader pathname -> result
@@ -93,7 +93,9 @@ function staticServer(options) {
         if (data.type === consts_1.FileType.FILE) {
             let ext = path_1.default.extname(data.filename) || '.txt';
             let contentType = mime_types_1.default.contentType(ext);
-            res.setHeader('Content-Type', contentType);
+            if (typeof contentType === 'string') {
+                res.setHeader('Content-Type', contentType);
+            }
             fs_1.default.createReadStream(data.filename).pipe(res);
             return;
         }
@@ -104,7 +106,10 @@ function staticServer(options) {
             if (isError) {
                 res.statusCode = 500;
             }
-            res.setHeader('Content-Type', mime_types_1.default.contentType('.html') || '');
+            let contentType = mime_types_1.default.contentType('.html');
+            if (typeof contentType === 'string') {
+                res.setHeader('Content-Type', contentType);
+            }
             res.end(html);
         }
     });

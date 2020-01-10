@@ -6,10 +6,16 @@ import { FileType } from '../consts'
 
 let readdir = promisify(fs.readdir)
 
-interface Reader {
-  read: (pathname: string, options: { rootPath: string }) => any
+type FileInfo = {
+  name: string,
+  isFile: boolean,
+  isDirectory: boolean,
+}
 
-  readDirectory: (filename: string) => Promise<any[]>
+export interface Reader {
+  read: (pathname: string, options: { rootPath: string }) => Promise<{ type: string, data: { filename: string, content?: string, files?: FileInfo[] } }>
+
+  readDirectory: (filename: string) => Promise<FileInfo[]>
 }
 
 let reader: Reader = {
@@ -28,11 +34,10 @@ let reader: Reader = {
       ? FileType.DIRECTORY
       : FileType.NOT_FOUND
 
-    let data = { filename }
+    let data: { filename: string, files?: FileInfo[] } = { filename }
 
     try {
       if (isDirectory) {
-        // @ts-ignore
         data.files = await reader.readDirectory(filename)
       }
 
@@ -44,6 +49,7 @@ let reader: Reader = {
       return {
         type: FileType.ERROR,
         data: {
+          ...data,
           content: error.message,
         },
       }
@@ -53,8 +59,7 @@ let reader: Reader = {
   readDirectory: async (filename) => {
     let files = await readdir(filename)
 
-    // @ts-ignore
-    files = await Promise.all(
+    let fileListInfo = await Promise.all(
       files.map(async (file) => {
         let { isFile, isDirectory } = await getFileInfo(
           path.join(filename, file),
@@ -68,7 +73,7 @@ let reader: Reader = {
       }),
     )
 
-    return files
+    return fileListInfo
   },
 }
 

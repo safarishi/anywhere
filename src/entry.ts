@@ -90,14 +90,14 @@ function staticServer(options: Options) {
 
   return async (req: IncomingMessage, res: ServerResponse) => {
     // 1 url-resolver req.url -> { pathname }
-    let { pathname, isVdActived, disablePublicPath } = resolver.resolve(
+    let { pathname, isVdActived, isPublicPathDisabled } = resolver.resolve(
       req.url || '',
       vd,
     )
 
     let rootPath = path.join(cwd, publicPath)
 
-    if (disablePublicPath) {
+    if (isPublicPathDisabled) {
       rootPath = cwd
     }
 
@@ -118,7 +118,9 @@ function staticServer(options: Options) {
 
       let contentType = mime.contentType(ext)
 
-      res.setHeader('Content-Type', contentType as string)
+      if (typeof contentType === 'string') {
+        res.setHeader('Content-Type', contentType)
+      }
 
       fs.createReadStream(data.filename).pipe(res)
 
@@ -135,7 +137,11 @@ function staticServer(options: Options) {
         res.statusCode = 500
       }
 
-      res.setHeader('Content-Type', mime.contentType('.html') as string || '')
+      let contentType = mime.contentType('.html')
+
+      if (typeof contentType === 'string') {
+        res.setHeader('Content-Type', contentType)
+      }
 
       res.end(html)
     }

@@ -24,7 +24,7 @@ let resolver = {
 
     let isPublicPathDisabled = disablePublicPath === '1'
 
-    return { pathname, isVdActived, disablePublicPath: isPublicPathDisabled }
+    return { pathname, isVdActived, isPublicPathDisabled }
   },
 }
 

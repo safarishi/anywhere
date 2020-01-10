@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const consts_1 = require("../consts");
 const style_1 = __importDefault(require("../style"));
 let renderer = {
-    render: (data = {}) => {
+    render: (data) => {
         let { type, fileMapList, pathList, content } = data;
         if (type === consts_1.FileType.DIRECTORY) {
             let html = renderer.renderDirectory({ fileMapList, pathList });
@@ -15,6 +15,7 @@ let renderer = {
         if (type === consts_1.FileType.NOT_FOUND) {
             return 'Page 404';
         }
+        // 错误的情况返回 content === error.message
         return content;
     },
     renderDirectory: ({ pathList = [], fileMapList = [] }) => {

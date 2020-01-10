@@ -4,13 +4,13 @@ const helpers_1 = require("../helpers");
 const consts_1 = require("../consts");
 let transformer = {
     transform: (result, { pathname, isVdActived, vd, rootPath }) => {
-        let { type, data = {} } = result;
+        let { type, data } = result;
         if (type === consts_1.FileType.NOT_FOUND) {
             return { type };
         }
         if (type === consts_1.FileType.DIRECTORY) {
             return transformer.transformDirectory({
-                files: data.files,
+                files: data.files || [],
                 vd,
                 isVdActived,
                 pathname,
@@ -22,7 +22,6 @@ let transformer = {
             return {
                 type,
                 filename: data.filename,
-                content: data.content,
             };
         }
         else {

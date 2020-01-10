@@ -2,13 +2,13 @@ import { FileType } from "../consts"
 import style from "../style"
 
 interface Renderer {
-  render: any
+  render: (data: any) => any,
   renderDirectory: any
   renderToHtml: any
 }
 
 let renderer: Renderer = {
-  render: (data: any = {}) => {
+  render: (data) => {
     let { type, fileMapList, pathList, content } = data
 
     if (type === FileType.DIRECTORY) {
@@ -21,6 +21,7 @@ let renderer: Renderer = {
       return 'Page 404'
     }
 
+    // 错误的情况返回 content === error.message
     return content
   },
 

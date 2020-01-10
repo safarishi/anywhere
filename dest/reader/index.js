@@ -34,7 +34,6 @@ let reader = {
         let data = { filename };
         try {
             if (isDirectory) {
-                // @ts-ignore
                 data.files = yield reader.readDirectory(filename);
             }
             return {
@@ -45,16 +44,13 @@ let reader = {
         catch (error) {
             return {
                 type: consts_1.FileType.ERROR,
-                data: {
-                    content: error.message,
-                },
+                data: Object.assign(Object.assign({}, data), { content: error.message }),
             };
         }
     }),
     readDirectory: (filename) => __awaiter(void 0, void 0, void 0, function* () {
         let files = yield readdir(filename);
-        // @ts-ignore
-        files = yield Promise.all(files.map((file) => __awaiter(void 0, void 0, void 0, function* () {
+        let fileListInfo = yield Promise.all(files.map((file) => __awaiter(void 0, void 0, void 0, function* () {
             let { isFile, isDirectory } = yield helpers_1.getFileInfo(path_1.default.join(filename, file));
             return {
                 name: file,
@@ -62,7 +58,7 @@ let reader = {
                 isDirectory,
             };
         })));
-        return files;
+        return fileListInfo;
     }),
 };
 exports.default = reader;

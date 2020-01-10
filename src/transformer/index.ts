@@ -1,9 +1,14 @@
 import { prepareDirectoryData } from "../helpers"
 import { FileType } from "../consts"
+import { Reader } from '../reader'
+
+type GetPromiseWrapperType<T> = T extends PromiseLike<infer U> ? U : never
+
+type Result = GetPromiseWrapperType<ReturnType<Reader['read']>>
 
 interface Transformer {
   transform: (
-    result: any,
+    result: Result,
     options: {
       pathname: string,
       isVdActived: boolean,
@@ -17,7 +22,7 @@ interface Transformer {
 
 let transformer: Transformer = {
   transform: (result, { pathname, isVdActived, vd, rootPath }) => {
-    let { type, data = {} } = result
+    let { type, data } = result
 
     if (type === FileType.NOT_FOUND) {
       return { type }
@@ -25,7 +30,7 @@ let transformer: Transformer = {
 
     if (type === FileType.DIRECTORY) {
       return transformer.transformDirectory({
-        files: data.files,
+        files: data.files || [],
         vd,
         isVdActived,
         pathname,
@@ -38,7 +43,6 @@ let transformer: Transformer = {
       return {
         type,
         filename: data.filename,
-        content: data.content,
       }
     } else {
       // type === FileType.ERROR
